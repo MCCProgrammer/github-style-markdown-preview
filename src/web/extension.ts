@@ -89,19 +89,10 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		
 		// Verificar se já existe uma preview no browser para este ficheiro
-		// Mas verificar se o documento ainda existe (pode ter sido fechado)
-		const previewData = browserPreviews.get(documentUri);
-		if (previewData) {
-			// Verificar se o documento ainda está aberto
-			const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
-			if (currentDoc) {
-				// Documento ainda existe, tentar reabrir o ficheiro HTML
-				// Limpar o estado anterior e criar novo
-				browserPreviews.delete(documentUri);
-			} else {
-				// Documento foi fechado, limpar estado
-				browserPreviews.delete(documentUri);
-			}
+		if (browserPreviews.has(documentUri)) {
+			// Se já existe, apenas focar no browser (não podemos controlar isso diretamente)
+			vscode.window.showInformationMessage('Preview já está aberta no browser. Verifique o seu navegador.');
+			return;
 		}
 
 		// Carregar preferência de tema
@@ -130,15 +121,14 @@ export function activate(context: vscode.ExtensionContext) {
 		// Primeiro, tentar criar no workspace (se disponível)
 		const workspaceFolders = vscode.workspace.workspaceFolders;
 		if (workspaceFolders && workspaceFolders.length > 0) {
-			// Criar ficheiro em um diretório temporário oculto dentro do workspace
+			// Criar ficheiro no primeiro workspace
 			const workspaceFolder = workspaceFolders[0];
-			// Usar um diretório oculto para não aparecer no explorer
-			const tempDir = vscode.Uri.joinPath(workspaceFolder.uri, '.github-readme-preview');
-			tempFile = vscode.Uri.joinPath(tempDir, `preview-${Date.now()}.html`);
+			tempFile = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', `preview-${Date.now()}.html`);
 			
-			// Criar diretório temporário se não existir
+			// Criar diretório .vscode se não existir
+			const vscodeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode');
 			try {
-				await vscode.workspace.fs.createDirectory(tempDir);
+				await vscode.workspace.fs.createDirectory(vscodeDir);
 			} catch (error) {
 				// Diretório já existe ou erro - continuar
 			}
@@ -239,33 +229,8 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			});
 
-			// Função para limpar ficheiros temporários
-			const cleanupTempFiles = async () => {
-				if (savedTempFile && !useDataUri) {
-					try {
-						// Apagar o ficheiro
-						await vscode.workspace.fs.delete(savedTempFile);
-						
-						// Tentar apagar o diretório se estiver vazio
-						const tempDir = vscode.Uri.joinPath(savedTempFile, '..');
-						try {
-							// Listar ficheiros no diretório
-							const files = await vscode.workspace.fs.readDirectory(tempDir);
-							// Se o diretório estiver vazio, apagá-lo
-							if (files.length === 0) {
-								await vscode.workspace.fs.delete(tempDir, { recursive: true });
-							}
-						} catch (error) {
-							// Ignorar erros ao apagar diretório
-						}
-					} catch (error) {
-						// Ignorar erros ao apagar ficheiro
-					}
-				}
-			};
-
 			// Limpar quando o documento é fechado
-			const closeSubscription = vscode.workspace.onDidCloseTextDocument(async (doc) => {
+			const closeSubscription = vscode.workspace.onDidCloseTextDocument((doc) => {
 				if (doc.uri.toString() === documentUri) {
 					browserPreviews.delete(documentUri);
 					changeSubscription.dispose();
@@ -273,8 +238,14 @@ export function activate(context: vscode.ExtensionContext) {
 					if (updateTimeout) {
 						clearTimeout(updateTimeout);
 					}
-					// Limpar ficheiros temporários
-					await cleanupTempFiles();
+					// Tentar apagar o ficheiro temporário (se foi criado)
+					if (savedTempFile && !useDataUri) {
+						vscode.workspace.fs.delete(savedTempFile).then(() => {
+							// Ficheiro apagado
+						}, () => {
+							// Ignorar erros ao apagar
+						});
+					}
 				}
 			});
 
@@ -807,7 +778,7 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 			transform: translateY(0);
 		}
 		.web-button {
-			right: 140px;
+			right: 120px;
 		}
 		${themeAdjustments}
 		</style>
