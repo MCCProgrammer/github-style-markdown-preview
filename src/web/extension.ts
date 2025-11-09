@@ -70,9 +70,200 @@ export function activate(context: vscode.ExtensionContext) {
 		// Guardar referência ao documento original para focar depois
 		const previewDocuments = new Map<string, vscode.TextDocument>();
 
+	// Map para guardar dados de preview no browser (para browser mode)
+	const browserPreviews = new Map<string, { 
+		document: vscode.TextDocument; 
+		isDarkMode: boolean; 
+		lastContent: string;
+		lastUpdate: number;
+	}>();
+
+	// Função para abrir preview no browser
+	async function openPreviewInBrowser(document: vscode.TextDocument, context: vscode.ExtensionContext, updateDelay: number) {
+		const documentUri = document.uri.toString();
+		
+		// Verificar se já existe uma preview no browser para este ficheiro
+		if (browserPreviews.has(documentUri)) {
+			// Se já existe, apenas focar no browser (não podemos controlar isso diretamente)
+			vscode.window.showInformationMessage('Preview já está aberta no browser. Verifique o seu navegador.');
+			return;
+		}
+
+		// Carregar preferência de tema
+		const savedThemePreference = loadThemePreference(context, document);
+		const vsCodeTheme = vscode.window.activeColorTheme;
+		const defaultIsDark = vsCodeTheme.kind === vscode.ColorThemeKind.Dark;
+		let isDarkMode = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
+
+		const md = new MarkdownIt();
+		const encoder = new TextEncoder();
+		
+		// Função para atualizar o ficheiro HTML
+		const updateHtmlFile = async (tempFile: vscode.Uri, content: string, darkMode: boolean) => {
+			const rendered = md.render(content);
+			const htmlContent = getBrowserHtml(rendered, content, darkMode, documentUri, updateDelay);
+			const data = encoder.encode(htmlContent);
+			await vscode.workspace.fs.writeFile(tempFile, data);
+		};
+
+		const content = document.getText();
+		
+		// Tentar criar ficheiro no workspace ou usar data URI
+		let tempFile: vscode.Uri | undefined;
+		let useDataUri = false;
+		
+		// Primeiro, tentar criar no workspace (se disponível)
+		const workspaceFolders = vscode.workspace.workspaceFolders;
+		if (workspaceFolders && workspaceFolders.length > 0) {
+			// Criar ficheiro no primeiro workspace
+			const workspaceFolder = workspaceFolders[0];
+			tempFile = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', `preview-${Date.now()}.html`);
+			
+			// Criar diretório .vscode se não existir
+			const vscodeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode');
+			try {
+				await vscode.workspace.fs.createDirectory(vscodeDir);
+			} catch (error) {
+				// Diretório já existe ou erro - continuar
+			}
+		} else {
+			// Sem workspace, usar data URI para ficheiros pequenos (< 2MB)
+			if (content.length < 2 * 1024 * 1024) {
+				useDataUri = true;
+			} else {
+				vscode.window.showErrorMessage('Sem workspace aberto. Por favor, abra um workspace para usar a preview no browser.');
+				return;
+			}
+		}
+		
+		try {
+			if (useDataUri) {
+				// Usar data URI para abrir diretamente no browser
+				const rendered = md.render(content);
+				const htmlContent = getBrowserHtml(rendered, content, isDarkMode, documentUri, updateDelay);
+				const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
+				await vscode.env.openExternal(vscode.Uri.parse(dataUri));
+				
+				// Guardar dados da preview (mas não podemos atualizar data URI facilmente)
+				browserPreviews.set(documentUri, {
+					document,
+					isDarkMode,
+					lastContent: content,
+					lastUpdate: Date.now()
+				});
+				
+				vscode.window.showInformationMessage('Preview aberta no browser. Nota: Atualizações automáticas podem não funcionar com data URI. Considere abrir um workspace.');
+				return;
+			}
+			
+			// Criar HTML inicial
+			await updateHtmlFile(tempFile!, content, isDarkMode);
+			
+			// Converter URI do VS Code para caminho local se possível
+			// Tentar abrir diretamente - VS Code deve converter automaticamente
+			await vscode.env.openExternal(tempFile!);
+			
+			// Guardar dados da preview
+			browserPreviews.set(documentUri, {
+				document,
+				isDarkMode,
+				lastContent: content,
+				lastUpdate: Date.now()
+			});
+
+			// Guardar referência ao ficheiro temporário
+			const savedTempFile = tempFile!;
+
+			// Debounce para atualizações
+			let updateTimeout: ReturnType<typeof setTimeout> | undefined;
+			const scheduleUpdate = () => {
+				if (updateTimeout) {
+					clearTimeout(updateTimeout);
+				}
+				if (updateDelay > 0) {
+					updateTimeout = setTimeout(async () => {
+						const preview = browserPreviews.get(documentUri);
+						if (preview) {
+							const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
+							if (currentDoc) {
+								const newContent = currentDoc.getText();
+								if (newContent !== preview.lastContent) {
+									preview.lastContent = newContent;
+									preview.lastUpdate = Date.now();
+									await updateHtmlFile(savedTempFile, newContent, preview.isDarkMode);
+								}
+							}
+						}
+					}, updateDelay);
+				} else {
+					// Atualização instantânea
+					(async () => {
+						const preview = browserPreviews.get(documentUri);
+						if (preview) {
+							const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
+							if (currentDoc) {
+								const newContent = currentDoc.getText();
+								if (newContent !== preview.lastContent) {
+									preview.lastContent = newContent;
+									preview.lastUpdate = Date.now();
+									await updateHtmlFile(savedTempFile, newContent, preview.isDarkMode);
+								}
+							}
+						}
+					})().catch(() => {
+						// Ignorar erros
+					});
+				}
+			};
+
+			// Listener para atualizar quando o documento muda
+			const changeSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
+				if (e.document.uri.toString() === documentUri) {
+					scheduleUpdate();
+				}
+			});
+
+			// Limpar quando o documento é fechado
+			const closeSubscription = vscode.workspace.onDidCloseTextDocument((doc) => {
+				if (doc.uri.toString() === documentUri) {
+					browserPreviews.delete(documentUri);
+					changeSubscription.dispose();
+					closeSubscription.dispose();
+					if (updateTimeout) {
+						clearTimeout(updateTimeout);
+					}
+					// Tentar apagar o ficheiro temporário (se foi criado)
+					if (savedTempFile && !useDataUri) {
+						vscode.workspace.fs.delete(savedTempFile).then(() => {
+							// Ficheiro apagado
+						}, () => {
+							// Ignorar erros ao apagar
+						});
+					}
+				}
+			});
+
+			context.subscriptions.push(changeSubscription, closeSubscription);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Erro ao abrir preview no browser: ${error}`);
+		}
+	}
+
 	// Função para abrir a preview (reutilizável)
 	async function openPreview(document: vscode.TextDocument) {
 		const documentUri = document.uri.toString();
+
+		// Carregar configurações
+		const config = vscode.workspace.getConfiguration('github-readme-viewer');
+		const openInBrowser = config.get<boolean>('openInBrowser', false);
+		const updateDelay = config.get<number>('updateDelay', 300);
+		const protectPreviewColumn = config.get<boolean>('protectPreviewColumn', false);
+
+		// Se openInBrowser está ativo, abrir no browser
+		if (openInBrowser) {
+			await openPreviewInBrowser(document, context, updateDelay);
+			return;
+		}
 
 		// Verificar se já existe um painel aberto para este ficheiro
 		const existingPanel = activePanels.get(documentUri);
@@ -82,11 +273,6 @@ export function activate(context: vscode.ExtensionContext) {
 			const editor = await vscode.window.showTextDocument(document, { preview: false });
 			return;
 		}
-
-		// Carregar configurações
-		const config = vscode.workspace.getConfiguration('github-readme-viewer');
-		const updateDelay = config.get<number>('updateDelay', 300);
-		const protectPreviewColumn = config.get<boolean>('protectPreviewColumn', false);
 
 		// Carregar a preferência de tema guardada, ou usar o tema do VS Code como padrão
 		const savedThemePreference = loadThemePreference(context, document);
@@ -395,6 +581,113 @@ export function activate(context: vscode.ExtensionContext) {
 		console.error('Error activating GitHub README Viewer:', error);
 		vscode.window.showErrorMessage(`GitHub README Viewer failed to activate: ${error}`);
 	}
+}
+
+// Função para gerar HTML para o browser (com auto-refresh para atualizações)
+function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolean, documentUri: string, updateDelay: number): string {
+	const cssFile = isDark ? 'github-markdown-dark.css' : 'github-markdown-light.css';
+	// Usar CDN para o CSS do GitHub (já que não podemos servir ficheiros locais no browser)
+	const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
+	
+	const content = `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
+	const buttonText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+	
+	const themeAdjustments = isDark ? `
+		.markdown-body {
+			color-scheme: dark;
+		}
+		.markdown-body pre {
+			background-color: #161b22;
+		}
+		.markdown-body code {
+			background-color: rgba(110, 118, 129, 0.4);
+		}
+	` : `
+		.markdown-body {
+			color-scheme: light;
+		}
+	`;
+
+	// Auto-refresh interval baseado no updateDelay
+	const refreshInterval = Math.max(updateDelay || 300, 200);
+
+	return /*html*/ `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="refresh" content="${Math.ceil(refreshInterval / 1000) + 1}">
+	<link rel="stylesheet" href="${cssUrl}">
+	<title>README Preview</title>
+	<style>
+		body {
+			background-color: ${isDark ? '#0d1117' : '#ffffff'};
+			color: ${isDark ? '#c9d1d9' : '#24292f'};
+			padding: 0;
+			margin: 0;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+		}
+		button {
+			position: fixed;
+			top: 10px;
+			right: 10px;
+			padding: 6px 12px;
+			background-color: ${isDark ? '#21262d' : '#f6f8fa'};
+			color: ${isDark ? '#c9d1d9' : '#24292f'};
+			border: 1px solid ${isDark ? '#30363d' : '#d0d7de'};
+			border-radius: 6px;
+			cursor: pointer;
+			z-index: 1000;
+			transition: all 0.2s ease;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		}
+		button:hover {
+			background-color: ${isDark ? '#30363d' : '#f3f4f6'};
+			transform: translateY(-1px);
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+		}
+		button:active {
+			transform: translateY(0);
+		}
+		.status {
+			position: fixed;
+			bottom: 10px;
+			right: 10px;
+			padding: 4px 8px;
+			background-color: rgba(0, 0, 0, 0.5);
+			color: white;
+			border-radius: 4px;
+			font-size: 11px;
+			opacity: 0.7;
+		}
+		${themeAdjustments}
+	</style>
+</head>
+<body>
+	<button id="toggle" title="Toggle between Dark and Light mode">${buttonText}</button>
+	<div id="content">${content}</div>
+	<div class="status" id="status">Auto-updating</div>
+	<script>
+		let isDarkMode = ${isDark};
+		
+		// Toggle theme (usa localStorage para persistir)
+		document.getElementById('toggle').addEventListener('click', () => {
+			const newTheme = !isDarkMode;
+			localStorage.setItem('github-readme-viewer-theme', newTheme ? 'dark' : 'light');
+			location.reload();
+		});
+		
+		// Carregar tema do localStorage se existir
+		const savedTheme = localStorage.getItem('github-readme-viewer-theme');
+		if (savedTheme && ((savedTheme === 'dark' && !isDarkMode) || (savedTheme === 'light' && isDarkMode))) {
+			// Tema mudou, recarregar
+			setTimeout(() => location.reload(), 100);
+		}
+	</script>
+</body>
+</html>
+	`;
 }
 
 function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean): string {

@@ -129,6 +129,38 @@ Para aceder às configurações:
 }
 ```
 
+#### `github-readme-viewer.openInBrowser`
+- **Tipo**: `boolean`
+- **Padrão**: `false`
+- **Descrição**: Abre a preview no navegador externo em vez do painel do VS Code. Quando ativado:
+  - A preview abre no seu navegador padrão
+  - Atualiza automaticamente quando edita o ficheiro (usando o `updateDelay` configurado)
+  - Suporta toggle de tema (dark/light mode)
+  - Usa auto-refresh para manter a preview atualizada
+- **Recomendação**: Ative se preferir ver a preview no navegador ou se quiser uma experiência mais próxima do GitHub
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.openInBrowser": true
+}
+```
+
+**Nota**: Quando `openInBrowser` está ativo, a preview é servida através de um ficheiro HTML temporário que é atualizado automaticamente. O ficheiro é apagado quando o documento é fechado.
+
+#### `github-readme-viewer.browserPort`
+- **Tipo**: `number`
+- **Padrão**: `8080`
+- **Descrição**: Porta para o servidor HTTP local quando `openInBrowser` está ativo (não usado atualmente, reservado para futuras melhorias)
+- **Recomendação**: Deixe o valor padrão a menos que tenha conflitos de porta
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.browserPort": 8080
+}
+```
+
 ## 🎨 Funcionalidades
 
 ### ✅ Atualização Automática
@@ -185,7 +217,19 @@ Para aceder às configurações:
 3. Ative a opção
 4. A preview agora usa uma coluna dedicada (coluna 2)
 5. Outros ficheiros abertos nessa coluna serão movidos automaticamente para a primeira coluna
-6. Mantém a preview sempre visível sem interferência
+6. Se um ficheiro tentar abrir na coluna da preview, será redirecionado para a coluna 1
+7. Mantém a preview sempre visível sem interferência
+
+### Exemplo 6: Abrir Preview no Navegador
+
+1. Abra as Settings
+2. Procure "Open In Browser"
+3. Ative a opção
+4. Abra um ficheiro `.md` e use `Alt+R` ou clique no botão "Open README Preview"
+5. A preview abre no seu navegador padrão
+6. Edite o ficheiro e veja a preview atualizar automaticamente no navegador
+7. Use o botão no canto superior direito para alternar entre dark e light mode
+8. A preview fecha automaticamente quando fecha o ficheiro no VS Code
 
 ## 🔧 Resolução de Problemas
 
