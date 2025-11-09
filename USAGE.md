@@ -15,8 +15,9 @@ Existem várias formas de abrir a preview de um ficheiro Markdown:
 - Clique no botão para abrir a preview
 
 #### 2. **Atalho de Teclado**
-- Pressione `Ctrl+Shift+R` (Windows/Linux) ou `Cmd+Shift+R` (Mac) quando um ficheiro Markdown está ativo
+- Pressione `Alt+R` (Windows/Linux) ou `Opt+R` (Mac) quando um ficheiro Markdown está ativo
 - A preview abre automaticamente ao lado do editor
+- **Nota**: O atalho foi mudado de `Ctrl+Shift+R` para `Alt+R` para evitar conflito com o reload do VS Code
 
 #### 3. **Comando da Paleta**
 - Pressione `F1` ou `Ctrl+Shift+P` (Windows/Linux) ou `Cmd+Shift+P` (Mac)
@@ -40,7 +41,13 @@ Existem três formas de alternar o tema:
 
 - **Fechar o ficheiro**: Quando fecha um ficheiro Markdown, a preview correspondente fecha automaticamente
 - **Fechar manualmente**: Clique no botão X no separador da preview
-- **Com auto-open ativado**: Se fechar a preview manualmente, ela não reabre automaticamente. Só reabre quando você abrir o ficheiro novamente
+- **Com auto-open ativado**: Se fechar a preview manualmente, ela não reabre automaticamente. Só reabre quando você fechar e reabrir o ficheiro
+
+### Foco Automático
+
+- Quando abre a preview, o foco volta automaticamente para o ficheiro `.md`
+- Isso permite que quando abrir outro ficheiro, ele abra na aba correta (não na preview)
+- Mantém o seu fluxo de trabalho fluido
 
 ## ⚙️ Configurações
 
@@ -55,8 +62,8 @@ Para aceder às configurações:
 #### `github-readme-viewer.autoOpen`
 - **Tipo**: `boolean`
 - **Padrão**: `false`
-- **Descrição**: Abre automaticamente a preview quando um ficheiro Markdown é aberto
-- **Recomendação**: Ative se quer que a preview abra sempre que abrir um ficheiro `.md`
+- **Descrição**: Abre automaticamente a preview quando um ficheiro Markdown é aberto. Quando ativado, também verifica ficheiros já abertos quando o VS Code inicia e abre as previews automaticamente.
+- **Recomendação**: Ative se quer que a preview abra sempre que abrir um ficheiro `.md` ou quando o VS Code inicia com ficheiros Markdown abertos
 
 **Exemplo:**
 ```json
@@ -64,6 +71,8 @@ Para aceder às configurações:
   "github-readme-viewer.autoOpen": true
 }
 ```
+
+**Nota**: Se fechar a preview manualmente, ela não reabre automaticamente até fechar e reabrir o ficheiro.
 
 #### `github-readme-viewer.updateDelay`
 - **Tipo**: `number`
@@ -104,6 +113,22 @@ Para aceder às configurações:
 }
 ```
 
+#### `github-readme-viewer.protectPreviewColumn`
+- **Tipo**: `boolean`
+- **Padrão**: `false`
+- **Descrição**: Protege a coluna da preview de outros ficheiros. Quando ativado:
+  - A preview usa uma coluna dedicada (coluna 2)
+  - Outros ficheiros abertos nessa coluna serão automaticamente movidos para a primeira coluna
+  - Ficheiros que tentam abrir na coluna da preview são redirecionados para a coluna 1
+- **Recomendação**: Ative se quiser manter a preview sempre visível sem interferência de outros ficheiros
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.protectPreviewColumn": true
+}
+```
+
 ## 🎨 Funcionalidades
 
 ### ✅ Atualização Automática
@@ -127,7 +152,7 @@ Para aceder às configurações:
 ### Exemplo 1: Trabalhar com README.md
 
 1. Abra um ficheiro `README.md`
-2. Pressione `Ctrl+Shift+R` para abrir a preview
+2. Pressione `Alt+R` para abrir a preview
 3. Edite o ficheiro e veja a preview atualizar automaticamente
 4. Clique no botão para alternar entre dark e light mode
 5. Feche o ficheiro e a preview fecha automaticamente
@@ -153,12 +178,22 @@ Para aceder às configurações:
 3. Adicione padrões como `["*.md", "*.markdown", "*.txt"]`
 4. Agora a extensão funciona com esses tipos de ficheiro
 
+### Exemplo 5: Proteger a Coluna da Preview
+
+1. Abra as Settings
+2. Procure "Protect Preview Column"
+3. Ative a opção
+4. A preview agora usa uma coluna dedicada (coluna 2)
+5. Outros ficheiros abertos nessa coluna serão movidos automaticamente para a primeira coluna
+6. Mantém a preview sempre visível sem interferência
+
 ## 🔧 Resolução de Problemas
 
 ### A preview não abre
 - Verifique se o ficheiro é um ficheiro Markdown (`.md`)
 - Verifique se o ficheiro está na lista de ficheiros suportados
-- Tente usar o atalho `Ctrl+Shift+R` diretamente
+- Tente usar o atalho `Alt+R` diretamente
+- Verifique se o botão aparece na barra de título do editor
 
 ### A preview não atualiza
 - Verifique a configuração `updateDelay`
@@ -177,7 +212,7 @@ Para aceder às configurações:
 
 ## 💡 Dicas
 
-1. **Atalhos Rápidos**: Use `Ctrl+Shift+R` para abrir e `Ctrl+Shift+T` para alternar tema
+1. **Atalhos Rápidos**: Use `Alt+R` para abrir e `Ctrl+Shift+T` para alternar tema
 2. **Auto-Open**: Ative `autoOpen` se trabalha frequentemente com ficheiros Markdown
 3. **Delay Personalizado**: Ajuste `updateDelay` conforme o tamanho dos seus ficheiros
 4. **Múltiplos Ficheiros**: Pode ter várias previews abertas ao mesmo tempo
