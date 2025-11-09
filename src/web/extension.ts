@@ -1,22 +1,22 @@
 import * as vscode from 'vscode';
 import MarkdownIt from 'markdown-it';
 
-// Função para obter a chave de preferência baseada no ficheiro
-function getPreferenceKey(document: vscode.TextDocument): string {
-	return `github-readme-viewer.view-mode.${document.uri.toString()}`;
+// Função para obter a chave de preferência de tema baseada no ficheiro
+function getThemePreferenceKey(document: vscode.TextDocument): string {
+	return `github-readme-viewer.theme-mode.${document.uri.toString()}`;
 }
 
-// Função para guardar a preferência de vista
-async function saveViewPreference(context: vscode.ExtensionContext, document: vscode.TextDocument, mode: 'github' | 'raw'): Promise<void> {
-	const key = getPreferenceKey(document);
-	await context.workspaceState.update(key, mode);
+// Função para guardar a preferência de tema
+async function saveThemePreference(context: vscode.ExtensionContext, document: vscode.TextDocument, isDark: boolean): Promise<void> {
+	const key = getThemePreferenceKey(document);
+	await context.workspaceState.update(key, isDark);
 }
 
-// Função para carregar a preferência de vista
-function loadViewPreference(context: vscode.ExtensionContext, document: vscode.TextDocument): 'github' | 'raw' {
-	const key = getPreferenceKey(document);
-	const saved = context.workspaceState.get<'github' | 'raw'>(key, 'github');
-	return saved;
+// Função para carregar a preferência de tema (retorna null se não houver preferência guardada)
+function loadThemePreference(context: vscode.ExtensionContext, document: vscode.TextDocument): boolean | null {
+	const key = getThemePreferenceKey(document);
+	const saved = context.workspaceState.get<boolean | undefined>(key, undefined);
+	return saved === undefined ? null : saved;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -48,8 +48,12 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		// Carregar a preferência guardada
-		let currentMode: 'github' | 'raw' = loadViewPreference(context, document);
+		// Carregar a preferência de tema guardada, ou usar o tema do VS Code como padrão
+		const savedThemePreference = loadThemePreference(context, document);
+		const vsCodeTheme = vscode.window.activeColorTheme;
+		const defaultIsDark = vsCodeTheme.kind === vscode.ColorThemeKind.Dark;
+		let isDarkMode: boolean = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
+		
 		const md = new MarkdownIt();
 
 		const panel = vscode.window.createWebviewPanel(
@@ -80,17 +84,14 @@ export function activate(context: vscode.ExtensionContext) {
 			const content = currentDocument.getText();
 			const rendered = md.render(content);
 			
-			// Detectar o tema atual (dark ou light)
-			const colorTheme = vscode.window.activeColorTheme;
-			// Usar dark CSS se o tema for Dark, caso contrário usar light
-			const isDark = colorTheme.kind === vscode.ColorThemeKind.Dark;
-			const cssFile = isDark ? 'github-markdown-dark.css' : 'github-markdown-light.css';
+			// Usar o tema escolhido pelo utilizador
+			const cssFile = isDarkMode ? 'github-markdown-dark.css' : 'github-markdown-light.css';
 			
 			const githubCssUri = panel.webview.asWebviewUri(
 				vscode.Uri.joinPath(context.extensionUri, 'node_modules', 'github-markdown-css', cssFile)
 			);
 
-			panel.webview.html = getWebviewHtml(rendered, githubCssUri, currentMode, content, isDark);
+			panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode);
 		};
 
 		// Debounce para atualizar a preview (evita muitos re-renders durante a digitação)
@@ -111,15 +112,11 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 
-		// Listener para mudanças de tema - atualiza a preview quando o tema muda
-		const themeChangeSubscription = vscode.window.onDidChangeActiveColorTheme(() => {
-			updateWebview();
-		});
-
 		panel.webview.onDidReceiveMessage(async (msg) => {
-			if (msg.command === 'toggleView') {
-				currentMode = currentMode === 'github' ? 'raw' : 'github';
-				await saveViewPreference(context, document, currentMode);
+			if (msg.command === 'toggleTheme') {
+				// Alternar entre dark e light mode
+				isDarkMode = !isDarkMode;
+				await saveThemePreference(context, document, isDarkMode);
 				updateWebview();
 			}
 		});
@@ -127,7 +124,6 @@ export function activate(context: vscode.ExtensionContext) {
 		// Limpar subscriptions quando o painel for fechado
 		panel.onDidDispose(() => {
 			changeSubscription.dispose();
-			themeChangeSubscription.dispose();
 			if (updateTimeout) {
 				clearTimeout(updateTimeout);
 			}
@@ -139,14 +135,13 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, mode: 'github' | 'raw', rawContent: string, isDark: boolean): string {
-	const content = mode === 'raw'
-		? `<pre style="white-space: pre-wrap; font-family: monospace; padding: 2rem;">${escapeHtml(rawContent)}</pre>`
-		: `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
+function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean): string {
+	const content = `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
 	
-	const buttonText = mode === 'github' ? 'Show Raw' : 'Show GitHub';
+	// Texto do botão baseado no tema atual
+	const buttonText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
 	
-	// Ajustar cores do markdown-body para corresponder ao tema do VS Code quando em modo dark
+	// Ajustar cores do markdown-body para corresponder melhor ao tema
 	const themeAdjustments = isDark ? `
 			.markdown-body {
 				color-scheme: dark;
@@ -157,7 +152,11 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, mode: 'github'
 			.markdown-body code {
 				background-color: var(--vscode-textCodeBlock-background);
 			}
-		` : '';
+		` : `
+			.markdown-body {
+				color-scheme: light;
+			}
+		`;
 
 	return /*html*/ `
 	<!DOCTYPE html>
@@ -199,7 +198,7 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, mode: 'github'
 			const vscode = acquireVsCodeApi();
 			const toggleButton = document.getElementById('toggle');
 			toggleButton.addEventListener('click', () => {
-				vscode.postMessage({ command: 'toggleView' });
+				vscode.postMessage({ command: 'toggleTheme' });
 			});
 		</script>
 	</body>

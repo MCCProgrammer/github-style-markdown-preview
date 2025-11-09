@@ -1,7 +1,7 @@
 {
   "name": "github-readme-viewer",
   "displayName": "github-readme-viewer",
-  "description": "View README.md files like on GitHub and toggle between raw and GitHub view.",
+  "description": "View README.md files like on GitHub with dark/light mode toggle.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
