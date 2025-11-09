@@ -617,7 +617,6 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 	const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
 	
 	const content = `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
-	const buttonText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
 	
 	const themeAdjustments = isDark ? `
 		.markdown-body {
@@ -655,28 +654,6 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 			margin: 0;
 			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 		}
-		button {
-			position: fixed;
-			top: 10px;
-			right: 10px;
-			padding: 6px 12px;
-			background-color: ${isDark ? '#21262d' : '#f6f8fa'};
-			color: ${isDark ? '#c9d1d9' : '#24292f'};
-			border: 1px solid ${isDark ? '#30363d' : '#d0d7de'};
-			border-radius: 6px;
-			cursor: pointer;
-			z-index: 1000;
-			transition: all 0.2s ease;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		}
-		button:hover {
-			background-color: ${isDark ? '#30363d' : '#f3f4f6'};
-			transform: translateY(-1px);
-			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-		}
-		button:active {
-			transform: translateY(0);
-		}
 		.status {
 			position: fixed;
 			bottom: 10px;
@@ -692,26 +669,8 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 	</style>
 </head>
 <body>
-	<button id="toggle" title="Toggle between Dark and Light mode">${buttonText}</button>
 	<div id="content">${content}</div>
 	<div class="status" id="status">Auto-updating</div>
-	<script>
-		let isDarkMode = ${isDark};
-		
-		// Toggle theme (usa localStorage para persistir)
-		document.getElementById('toggle').addEventListener('click', () => {
-			const newTheme = !isDarkMode;
-			localStorage.setItem('github-readme-viewer-theme', newTheme ? 'dark' : 'light');
-			location.reload();
-		});
-		
-		// Carregar tema do localStorage se existir
-		const savedTheme = localStorage.getItem('github-readme-viewer-theme');
-		if (savedTheme && ((savedTheme === 'dark' && !isDarkMode) || (savedTheme === 'light' && isDarkMode))) {
-			// Tema mudou, recarregar
-			setTimeout(() => location.reload(), 100);
-		}
-	</script>
 </body>
 </html>
 	`;
@@ -778,7 +737,10 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 			transform: translateY(0);
 		}
 		.web-button {
-			right: 120px;
+			right: 140px;
+		}
+		#toggle {
+			right: 10px;
 		}
 		${themeAdjustments}
 		</style>
