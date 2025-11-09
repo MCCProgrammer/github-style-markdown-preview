@@ -19,26 +19,54 @@ function loadThemePreference(context: vscode.ExtensionContext, document: vscode.
 	return saved === undefined ? null : saved;
 }
 
+// Função para obter a chave de preferência de preview fechada manualmente
+function getPreviewClosedKey(document: vscode.TextDocument): string {
+	return `github-readme-viewer.preview-closed.${document.uri.toString()}`;
+}
+
+// Função para guardar estado de preview fechada manualmente
+async function setPreviewClosed(context: vscode.ExtensionContext, document: vscode.TextDocument, closed: boolean): Promise<void> {
+	const key = getPreviewClosedKey(document);
+	await context.workspaceState.update(key, closed);
+}
+
+// Função para verificar se a preview foi fechada manualmente
+function isPreviewClosed(context: vscode.ExtensionContext, document: vscode.TextDocument): boolean {
+	const key = getPreviewClosedKey(document);
+	return context.workspaceState.get<boolean>(key, false);
+}
+
+// Função para verificar se um ficheiro é suportado
+function isFileSupported(document: vscode.TextDocument): boolean {
+	const config = vscode.workspace.getConfiguration('github-readme-viewer');
+	const supportedPatterns = config.get<string[]>('supportedFiles', ['*.md']);
+	const fileName = document.fileName;
+	
+	// Se o documento não for markdown, não é suportado
+	if (document.languageId !== 'markdown') {
+		return false;
+	}
+	
+	// Verificar se corresponde a algum padrão
+	return supportedPatterns.some(pattern => {
+		// Converter padrão glob simples para regex
+		const regexPattern = pattern
+			.replace(/\*\*/g, '.*')
+			.replace(/\*/g, '[^/]*')
+			.replace(/\?/g, '.');
+		const regex = new RegExp(`^${regexPattern}$`, 'i');
+		return regex.test(fileName) || regex.test(document.uri.fsPath);
+	});
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('GitHub README Viewer is active!');
 
 	// Map para guardar os painéis ativos por documento
 	const activePanels = new Map<string, vscode.WebviewPanel>();
 
-	// Registar o comando (definido também no package.json)
-	const disposable = vscode.commands.registerCommand('github-readme-viewer.openReadme', async () => {
-		const editor = vscode.window.activeTextEditor;
-		if (!editor) {
-			vscode.window.showErrorMessage('Nenhum ficheiro aberto.');
-			return;
-		}
-
-		const document = editor.document;
-		if (!document.fileName.toLowerCase().includes('readme.md')) {
-			vscode.window.showErrorMessage('Este comando só funciona com ficheiros README.md');
-			return;
-		}
-
+	// Função para abrir a preview (reutilizável)
+	async function openPreview(document: vscode.TextDocument) {
 		const documentUri = document.uri.toString();
 
 		// Verificar se já existe um painel aberto para este ficheiro
@@ -48,6 +76,10 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
+		// Carregar configurações
+		const config = vscode.workspace.getConfiguration('github-readme-viewer');
+		const updateDelay = config.get<number>('updateDelay', 300);
+
 		// Carregar a preferência de tema guardada, ou usar o tema do VS Code como padrão
 		const savedThemePreference = loadThemePreference(context, document);
 		const vsCodeTheme = vscode.window.activeColorTheme;
@@ -56,9 +88,11 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		const md = new MarkdownIt();
 
+		// Obter nome do ficheiro para o título
+		const fileName = document.fileName.split(/[/\\]/).pop() || 'README.md';
 		const panel = vscode.window.createWebviewPanel(
 			'githubReadmePreview',
-			'README Preview',
+			`${fileName} Preview`,
 			vscode.ViewColumn.Beside,
 			{
 				enableScripts: true,
@@ -72,6 +106,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// Remover do map quando o painel for fechado
 		panel.onDidDispose(() => {
 			activePanels.delete(documentUri);
+			// Marcar que a preview foi fechada manualmente
+			setPreviewClosed(context, document, true).catch(() => {
+				// Ignorar erros
+			});
 		});
 
 		const updateWebview = () => {
@@ -94,15 +132,29 @@ export function activate(context: vscode.ExtensionContext) {
 			panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode);
 		};
 
-		// Debounce para atualizar a preview (evita muitos re-renders durante a digitação)
+		// Função para alternar tema (exportada para comando externo)
+		const toggleTheme = async () => {
+			isDarkMode = !isDarkMode;
+			await saveThemePreference(context, document, isDarkMode);
+			updateWebview();
+		};
+
+		// Guardar função de toggle no contexto do painel para acesso externo
+		(panel as any).toggleTheme = toggleTheme;
+
+		// Debounce para atualizar a preview (usa delay configurável)
 		let updateTimeout: ReturnType<typeof setTimeout> | undefined;
 		const scheduleUpdate = () => {
 			if (updateTimeout) {
 				clearTimeout(updateTimeout);
 			}
-			updateTimeout = setTimeout(() => {
+			if (updateDelay > 0) {
+				updateTimeout = setTimeout(() => {
+					updateWebview();
+				}, updateDelay);
+			} else {
 				updateWebview();
-			}, 300); // Aguarda 300ms após a última mudança
+			}
 		};
 
 		// Listener para mudanças no documento - atualiza a preview automaticamente
@@ -114,10 +166,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		panel.webview.onDidReceiveMessage(async (msg) => {
 			if (msg.command === 'toggleTheme') {
-				// Alternar entre dark e light mode
-				isDarkMode = !isDarkMode;
-				await saveThemePreference(context, document, isDarkMode);
-				updateWebview();
+				await toggleTheme();
 			}
 		});
 
@@ -130,9 +179,81 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 
 		updateWebview();
+	}
+
+	// Registar o comando para abrir preview
+	const openCommand = vscode.commands.registerCommand('github-readme-viewer.openReadme', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage('Nenhum ficheiro aberto.');
+			return;
+		}
+
+		const document = editor.document;
+		if (!isFileSupported(document)) {
+			vscode.window.showWarningMessage('Este comando só funciona com ficheiros Markdown suportados.');
+			return;
+		}
+
+		// Resetar estado de preview fechada quando o utilizador abre manualmente
+		await setPreviewClosed(context, document, false);
+		await openPreview(document);
 	});
 
-	context.subscriptions.push(disposable);
+	// Registar o comando para toggle theme
+	const toggleThemeCommand = vscode.commands.registerCommand('github-readme-viewer.toggleTheme', async () => {
+		// Encontrar o painel ativo
+		const activePanel = Array.from(activePanels.values()).find(panel => panel.visible);
+		if (activePanel && (activePanel as any).toggleTheme) {
+			await (activePanel as any).toggleTheme();
+		} else {
+			vscode.window.showInformationMessage('Nenhuma preview ativa. Abra uma preview primeiro.');
+		}
+	});
+
+	// Auto-abrir preview se configurado
+	const config = vscode.workspace.getConfiguration('github-readme-viewer');
+	if (config.get<boolean>('autoOpen', false)) {
+		const autoOpenDisposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+			if (editor && isFileSupported(editor.document)) {
+				// Verificar se a preview não foi fechada manualmente
+				if (!isPreviewClosed(context, editor.document)) {
+					// Pequeno delay para evitar abrir múltiplas vezes
+					setTimeout(() => {
+						openPreview(editor.document).catch(() => {
+							// Ignorar erros silenciosamente
+						});
+					}, 100);
+				}
+			}
+		});
+		context.subscriptions.push(autoOpenDisposable);
+	}
+
+	// Fechar preview quando o ficheiro é fechado
+	const closePreviewOnDocumentClose = vscode.workspace.onDidCloseTextDocument((document) => {
+		if (isFileSupported(document)) {
+			const documentUri = document.uri.toString();
+			const panel = activePanels.get(documentUri);
+			if (panel) {
+				panel.dispose();
+			}
+		}
+	});
+	context.subscriptions.push(closePreviewOnDocumentClose);
+
+	// Resetar estado de preview fechada quando o ficheiro é aberto (para permitir reabrir)
+	const resetPreviewClosedOnOpen = vscode.workspace.onDidOpenTextDocument((document) => {
+		if (isFileSupported(document)) {
+			// Resetar o estado quando o ficheiro é aberto novamente
+			setPreviewClosed(context, document, false).catch(() => {
+				// Ignorar erros
+			});
+		}
+	});
+	context.subscriptions.push(resetPreviewClosedOnOpen);
+
+	context.subscriptions.push(openCommand, toggleThemeCommand);
 }
 
 function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean): string {
@@ -184,15 +305,22 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 				border-radius: 6px;
 				cursor: pointer;
 				z-index: 1000;
+				transition: background-color 0.2s ease;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 			}
 			button:hover {
 				background-color: var(--vscode-button-hoverBackground);
+				transform: translateY(-1px);
+				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+			}
+			button:active {
+				transform: translateY(0);
 			}
 			${themeAdjustments}
 		</style>
 	</head>
 	<body>
-		<button id="toggle">${buttonText}</button>
+		<button id="toggle" title="Toggle between Dark and Light mode (Ctrl+Shift+T)">${buttonText}</button>
 		<div id="content">${content}</div>
 		<script>
 			const vscode = acquireVsCodeApi();

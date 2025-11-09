@@ -16,17 +16,70 @@
       {
         "command": "github-readme-viewer.openReadme",
         "title": "Open README Preview",
-        "icon": "$(preview)"
+        "icon": "$(preview)",
+        "category": "GitHub README Viewer"
+      },
+      {
+        "command": "github-readme-viewer.toggleTheme",
+        "title": "Toggle Preview Theme",
+        "icon": "$(color-mode)",
+        "category": "GitHub README Viewer"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "github-readme-viewer.openReadme",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorTextFocus && editorLangId == markdown"
+      },
+      {
+        "command": "github-readme-viewer.toggleTheme",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "activeWebviewPanelId == 'githubReadmePreview'"
       }
     ],
     "menus": {
       "editor/title": [
         {
           "command": "github-readme-viewer.openReadme",
-          "when": "resourceFilename =~ /readme\\.md$/i",
+          "when": "resourceExtname == .md",
+          "group": "navigation"
+        }
+      ],
+      "webview/title": [
+        {
+          "command": "github-readme-viewer.toggleTheme",
+          "when": "webviewId == githubReadmePreview",
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "GitHub README Viewer",
+      "properties": {
+        "github-readme-viewer.autoOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically open preview when a markdown file is opened"
+        },
+        "github-readme-viewer.updateDelay": {
+          "type": "number",
+          "default": 300,
+          "description": "Delay in milliseconds before updating preview after editing (0 = instant update)",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "github-readme-viewer.supportedFiles": {
+          "type": "array",
+          "default": ["*.md"],
+          "description": "File patterns to support (e.g., ['*.md', 'README*', '*.markdown'])",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "scripts": {
