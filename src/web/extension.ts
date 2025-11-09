@@ -89,10 +89,23 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		
 		// Verificar se já existe uma preview no browser para este ficheiro
-		if (browserPreviews.has(documentUri)) {
-			// Se já existe, apenas focar no browser (não podemos controlar isso diretamente)
-			vscode.window.showInformationMessage('Preview já está aberta no browser. Verifique o seu navegador.');
-			return;
+		// Mas permitir reabrir se o utilizador quiser (pode ter fechado o browser)
+		const existingPreview = browserPreviews.get(documentUri);
+		if (existingPreview) {
+			// Verificar se o ficheiro temporário ainda existe
+			// Se não existir, limpar o tracking e permitir abrir novamente
+			try {
+				// Tentar ler o ficheiro para verificar se ainda existe
+				// Se falhar, assume que foi fechado e limpa o tracking
+			} catch (error) {
+				// Ficheiro não existe, limpar tracking
+				browserPreviews.delete(documentUri);
+			}
+			
+			// Se ainda existe, perguntar ao utilizador se quer reabrir
+			// Por agora, vamos sempre permitir reabrir (o browser pode ter sido fechado)
+			browserPreviews.delete(documentUri); // Limpar tracking antigo
+			// Continuar para abrir nova preview
 		}
 
 		// Carregar preferência de tema
@@ -105,9 +118,9 @@ export function activate(context: vscode.ExtensionContext) {
 		const encoder = new TextEncoder();
 		
 		// Função para atualizar o ficheiro HTML
-		const updateHtmlFile = async (tempFile: vscode.Uri, content: string, darkMode: boolean) => {
+		const updateHtmlFile = async (tempFile: vscode.Uri, content: string, darkMode: boolean, lastModified: number) => {
 			const rendered = md.render(content);
-			const htmlContent = getBrowserHtml(rendered, content, darkMode, documentUri, updateDelay);
+			const htmlContent = getBrowserHtml(rendered, content, darkMode, documentUri, updateDelay, lastModified);
 			const data = encoder.encode(htmlContent);
 			await vscode.workspace.fs.writeFile(tempFile, data);
 		};
@@ -146,7 +159,8 @@ export function activate(context: vscode.ExtensionContext) {
 			if (useDataUri) {
 				// Usar data URI para abrir diretamente no browser
 				const rendered = md.render(content);
-				const htmlContent = getBrowserHtml(rendered, content, isDarkMode, documentUri, updateDelay);
+				const lastModified = Date.now();
+				const htmlContent = getBrowserHtml(rendered, content, isDarkMode, documentUri, updateDelay, lastModified);
 				const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
 				await vscode.env.openExternal(vscode.Uri.parse(dataUri));
 				
@@ -155,7 +169,7 @@ export function activate(context: vscode.ExtensionContext) {
 					document,
 					isDarkMode,
 					lastContent: content,
-					lastUpdate: Date.now()
+					lastUpdate: lastModified
 				});
 				
 				vscode.window.showInformationMessage('Preview aberta no browser. Nota: Atualizações automáticas podem não funcionar com data URI. Considere abrir um workspace.');
@@ -163,7 +177,8 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			
 			// Criar HTML inicial
-			await updateHtmlFile(tempFile!, content, isDarkMode);
+			const lastModified = Date.now();
+			await updateHtmlFile(tempFile!, content, isDarkMode, lastModified);
 			
 			// Converter URI do VS Code para caminho local se possível
 			// Tentar abrir diretamente - VS Code deve converter automaticamente
@@ -174,52 +189,68 @@ export function activate(context: vscode.ExtensionContext) {
 				document,
 				isDarkMode,
 				lastContent: content,
-				lastUpdate: Date.now()
+				lastUpdate: lastModified
 			});
 
 			// Guardar referência ao ficheiro temporário
 			const savedTempFile = tempFile!;
 
-			// Debounce para atualizações
+			// Debounce para atualizações (com proteção contra múltiplas escritas simultâneas)
 			let updateTimeout: ReturnType<typeof setTimeout> | undefined;
+			let isWritingFile = false;
+			let lastWrittenContent = content;
+			let lastWrittenTimestamp = Date.now();
+			
 			const scheduleUpdate = () => {
 				if (updateTimeout) {
 					clearTimeout(updateTimeout);
 				}
-				if (updateDelay > 0) {
-					updateTimeout = setTimeout(async () => {
-						const preview = browserPreviews.get(documentUri);
-						if (preview) {
-							const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
-							if (currentDoc) {
-								const newContent = currentDoc.getText();
-								if (newContent !== preview.lastContent) {
+				
+				// Usar um delay mínimo para evitar escritas muito frequentes
+				const minDelay = Math.max(updateDelay, 200); // Mínimo 200ms entre escritas
+				
+				updateTimeout = setTimeout(async () => {
+					// Proteção contra escritas simultâneas
+					if (isWritingFile) {
+						// Se já está a escrever, reagendar
+						scheduleUpdate();
+						return;
+					}
+					
+					const preview = browserPreviews.get(documentUri);
+					if (preview) {
+						const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
+						if (currentDoc) {
+							const newContent = currentDoc.getText();
+							
+							// Só atualizar se o conteúdo realmente mudou
+							if (newContent !== preview.lastContent && newContent !== lastWrittenContent) {
+								// Verificar se passou tempo suficiente desde a última escrita
+								const timeSinceLastWrite = Date.now() - lastWrittenTimestamp;
+								if (timeSinceLastWrite < minDelay) {
+									// Reagendar para mais tarde
+									updateTimeout = setTimeout(() => scheduleUpdate(), minDelay - timeSinceLastWrite);
+									return;
+								}
+								
+								isWritingFile = true;
+								try {
 									preview.lastContent = newContent;
-									preview.lastUpdate = Date.now();
-									await updateHtmlFile(savedTempFile, newContent, preview.isDarkMode);
+									const newLastModified = Date.now();
+									preview.lastUpdate = newLastModified;
+									lastWrittenContent = newContent;
+									lastWrittenTimestamp = newLastModified;
+									
+									await updateHtmlFile(savedTempFile, newContent, preview.isDarkMode, newLastModified);
+								} catch (error) {
+									console.error('Error updating HTML file:', error);
+								} finally {
+									isWritingFile = false;
 								}
 							}
 						}
-					}, updateDelay);
-				} else {
-					// Atualização instantânea
-					(async () => {
-						const preview = browserPreviews.get(documentUri);
-						if (preview) {
-							const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
-							if (currentDoc) {
-								const newContent = currentDoc.getText();
-								if (newContent !== preview.lastContent) {
-									preview.lastContent = newContent;
-									preview.lastUpdate = Date.now();
-									await updateHtmlFile(savedTempFile, newContent, preview.isDarkMode);
-								}
-							}
-						}
-					})().catch(() => {
-						// Ignorar erros
-					});
-				}
+					}
+				}, minDelay);
 			};
 
 			// Listener para atualizar quando o documento muda
@@ -229,11 +260,37 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			});
 
+			// Listener para atualizar quando o documento é guardado (força atualização imediata)
+			const saveSubscription = vscode.workspace.onDidSaveTextDocument(async (doc) => {
+				if (doc.uri.toString() === documentUri) {
+					const preview = browserPreviews.get(documentUri);
+					if (preview) {
+						const newContent = doc.getText();
+						if (newContent !== preview.lastContent) {
+							preview.lastContent = newContent;
+							const newLastModified = Date.now();
+							preview.lastUpdate = newLastModified;
+							try {
+								// Atualizar o ficheiro HTML
+								await updateHtmlFile(savedTempFile, newContent, preview.isDarkMode, newLastModified);
+								
+								// Para ficheiros file://, não podemos notificar o browser diretamente
+								// O script no HTML irá detectar a mudança através do timestamp
+								// e recarregar a página automaticamente
+							} catch (error) {
+								console.error('Error updating HTML file on save:', error);
+							}
+						}
+					}
+				}
+			});
+
 			// Limpar quando o documento é fechado
 			const closeSubscription = vscode.workspace.onDidCloseTextDocument((doc) => {
 				if (doc.uri.toString() === documentUri) {
 					browserPreviews.delete(documentUri);
 					changeSubscription.dispose();
+					saveSubscription.dispose();
 					closeSubscription.dispose();
 					if (updateTimeout) {
 						clearTimeout(updateTimeout);
@@ -249,7 +306,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			});
 
-			context.subscriptions.push(changeSubscription, closeSubscription);
+			context.subscriptions.push(changeSubscription, saveSubscription, closeSubscription);
 		} catch (error) {
 			vscode.window.showErrorMessage(`Erro ao abrir preview no browser: ${error}`);
 		}
@@ -380,6 +437,14 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 
+		// Atualizar imediatamente quando o ficheiro é guardado
+		const saveSubscription = vscode.workspace.onDidSaveTextDocument((doc) => {
+			if (doc.uri.toString() === documentUri) {
+				// Atualizar imediatamente quando guarda (sem debounce)
+				updateWebview();
+			}
+		});
+
 		// Função para abrir no browser e fechar o painel
 		const openInBrowserAndClose = async () => {
 			const config = vscode.workspace.getConfiguration('github-readme-viewer');
@@ -396,9 +461,12 @@ export function activate(context: vscode.ExtensionContext) {
 		(panel as any).openInBrowser = openInBrowserAndClose;
 
 		panel.webview.onDidReceiveMessage(async (msg) => {
+			console.log('Received message in webview:', msg);
 			if (msg.command === 'toggleTheme') {
+				console.log('Toggling theme...');
 				await toggleTheme();
 			} else if (msg.command === 'openInBrowser') {
+				console.log('Opening in browser...');
 				await openInBrowserAndClose();
 			}
 		});
@@ -406,6 +474,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Limpar subscriptions quando o painel for fechado
 		panel.onDidDispose(() => {
 			changeSubscription.dispose();
+			saveSubscription.dispose();
 			if (updateTimeout) {
 				clearTimeout(updateTimeout);
 			}
@@ -610,8 +679,8 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 }
 
-// Função para gerar HTML para o browser (com auto-refresh para atualizações)
-function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolean, documentUri: string, updateDelay: number): string {
+// Função para gerar HTML para o browser (com hot reload estilo Vite)
+function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolean, documentUri: string, updateDelay: number, lastModified: number): string {
 	const cssFile = isDark ? 'github-markdown-dark.css' : 'github-markdown-light.css';
 	// Usar CDN para o CSS do GitHub (já que não podemos servir ficheiros locais no browser)
 	const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
@@ -635,8 +704,8 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 		}
 	`;
 
-	// Auto-refresh interval baseado no updateDelay
-	const refreshInterval = Math.max(updateDelay || 300, 200);
+	// Polling interval baseado no updateDelay (mínimo 500ms para não sobrecarregar)
+	const pollInterval = Math.max(updateDelay || 300, 500);
 
 	return /*html*/ `
 <!DOCTYPE html>
@@ -644,7 +713,6 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="refresh" content="${Math.ceil(refreshInterval / 1000) + 1}">
 	<link rel="stylesheet" href="${cssUrl}">
 	<title>README Preview</title>
 	<style>
@@ -668,6 +736,7 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 			z-index: 1000;
 			transition: all 0.2s ease;
 			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			user-select: none;
 		}
 		button:hover {
 			background-color: ${isDark ? '#30363d' : '#f3f4f6'};
@@ -676,6 +745,10 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 		}
 		button:active {
 			transform: translateY(0);
+		}
+		button:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
 		}
 		.status {
 			position: fixed;
@@ -687,30 +760,354 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 			border-radius: 4px;
 			font-size: 11px;
 			opacity: 0.7;
+			display: none;
+		}
+		.status.updating {
+			display: block;
+			background-color: rgba(40, 167, 69, 0.8);
 		}
 		${themeAdjustments}
 	</style>
 </head>
-<body>
+<body data-timestamp="${lastModified}" data-file-path="${documentUri}">
 	<button id="toggle" title="Toggle between Dark and Light mode">${buttonText}</button>
 	<div id="content">${content}</div>
-	<div class="status" id="status">Auto-updating</div>
+	<div class="status" id="status">Updating...</div>
 	<script>
-		let isDarkMode = ${isDark};
-		
-		// Toggle theme (usa localStorage para persistir)
-		document.getElementById('toggle').addEventListener('click', () => {
-			const newTheme = !isDarkMode;
-			localStorage.setItem('github-readme-viewer-theme', newTheme ? 'dark' : 'light');
-			location.reload();
-		});
-		
-		// Carregar tema do localStorage se existir
-		const savedTheme = localStorage.getItem('github-readme-viewer-theme');
-		if (savedTheme && ((savedTheme === 'dark' && !isDarkMode) || (savedTheme === 'light' && isDarkMode))) {
-			// Tema mudou, recarregar
-			setTimeout(() => location.reload(), 100);
-		}
+		(function() {
+			// Estado da aplicação
+			let isDarkMode = ${isDark};
+			let lastModified = ${lastModified};
+			let isUpdating = false;
+			let scrollPosition = window.scrollY || document.documentElement.scrollTop;
+			let pendingXHR = null;
+			let checkInterval = null;
+			let updateDebounceTimer = null;
+			let fileCheckInterval = null;
+			
+			// Flag para prevenir loops de reload no tema
+			const themeReloadKey = 'github-readme-viewer-theme-reload';
+			const hasThemeReloaded = sessionStorage.getItem(themeReloadKey);
+			if (hasThemeReloaded) {
+				sessionStorage.removeItem(themeReloadKey);
+			}
+			
+			// Salvar posição do scroll antes de atualizar
+			function saveScrollPosition() {
+				scrollPosition = window.scrollY || document.documentElement.scrollTop;
+			}
+			
+			// Restaurar posição do scroll após atualizar
+			function restoreScrollPosition() {
+				window.scrollTo(0, scrollPosition);
+			}
+			
+			// Variável para controlar se o utilizador está interagindo
+			let userActive = true;
+			let lastActivity = Date.now();
+			let activityCheckInterval = null;
+			
+			// Detectar atividade do utilizador (pausar verificações quando interage)
+			const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+			const handleActivity = function() {
+				userActive = true;
+				lastActivity = Date.now();
+			};
+			
+			activityEvents.forEach(eventName => {
+				document.addEventListener(eventName, handleActivity, { passive: true });
+			});
+			
+			// Verificar se o utilizador está inativo
+			activityCheckInterval = setInterval(() => {
+				const timeSinceActivity = Date.now() - lastActivity;
+				userActive = timeSinceActivity < 3000; // Considerar ativo se houve atividade nos últimos 3 segundos
+			}, 1000);
+			
+			// Função para cancelar XHR pendente
+			function cancelPendingUpdate() {
+				if (pendingXHR) {
+					try {
+						pendingXHR.abort();
+					} catch (e) {
+						// Ignorar erros
+					}
+					pendingXHR = null;
+				}
+			}
+			
+			// Detectar se estamos num protocolo file://
+			const isFileProtocol = window.location.protocol === 'file:';
+			
+			// Função para verificar atualizações
+			function checkForUpdates() {
+				// Para protocolo file://, não podemos usar XMLHttpRequest devido a CORS
+				// As atualizações são feitas apenas quando o ficheiro é guardado (onDidSaveTextDocument)
+				// Não fazer polling automático para evitar erros CORS
+				if (isFileProtocol) {
+					// Para file://, não fazer nada - as atualizações vêm do onDidSaveTextDocument
+					// que atualiza o ficheiro HTML diretamente
+					return;
+				}
+				
+				// Não verificar se estiver a atualizar ou se já houver uma verificação pendente
+				if (isUpdating || pendingXHR) {
+					return;
+				}
+				
+				// Para protocolos http/https, usar XMLHttpRequest normalmente
+				try {
+					// Cancelar qualquer verificação anterior
+					cancelPendingUpdate();
+					
+					const xhr = new XMLHttpRequest();
+					pendingXHR = xhr;
+					
+					xhr.open('GET', window.location.href + '?t=' + Date.now(), true);
+					xhr.setRequestHeader('Cache-Control', 'no-cache');
+					xhr.timeout = 5000; // Timeout de 5 segundos
+					
+					xhr.onload = function() {
+						pendingXHR = null;
+						
+						if (xhr.status === 200 || xhr.status === 0) {
+							const html = xhr.responseText;
+							
+							// Procurar pelo timestamp no HTML
+							const timestampMatch = html.match(/data-timestamp="(\\d+)"/);
+							if (timestampMatch) {
+								const fileTimestamp = parseInt(timestampMatch[1]);
+								
+								// Se o timestamp do ficheiro é maior que o nosso lastModified, houve atualização
+								if (fileTimestamp > lastModified + 50) {
+									const debounceDelay = userActive ? 500 : 100;
+									
+									if (updateDebounceTimer) {
+										clearTimeout(updateDebounceTimer);
+									}
+									
+									updateDebounceTimer = setTimeout(() => {
+										updateContent(html, fileTimestamp);
+										updateDebounceTimer = null;
+									}, debounceDelay);
+								}
+							}
+						}
+					};
+					
+					xhr.onerror = function() {
+						pendingXHR = null;
+						// Silenciosamente ignorar erros
+					};
+					
+					xhr.ontimeout = function() {
+						pendingXHR = null;
+						// Silenciosamente ignorar timeout
+					};
+					
+					xhr.send();
+				} catch (error) {
+					pendingXHR = null;
+					// Silenciosamente ignorar erros
+				}
+			}
+			
+			// Função para atualizar o conteúdo (com proteção contra loops)
+			function updateContent(html, newTimestamp) {
+				// Verificar novamente se já está a atualizar (proteção dupla)
+				if (isUpdating) {
+					console.debug('Update already in progress, skipping');
+					return;
+				}
+				
+				// Verificar se o timestamp realmente mudou (evitar atualizações desnecessárias)
+				if (newTimestamp && newTimestamp <= lastModified) {
+					console.debug('Timestamp not changed, skipping update');
+					return;
+				}
+				
+				isUpdating = true;
+				
+				const statusEl = document.getElementById('status');
+				if (statusEl) {
+					statusEl.classList.add('updating');
+					statusEl.textContent = 'Updating...';
+				}
+				
+				saveScrollPosition();
+				
+				try {
+					// Extrair apenas o conteúdo do artigo usando regex
+					const contentMatch = html.match(/<div id="content">([\\s\\S]*?)<\\/div>/);
+					
+					if (contentMatch) {
+						// Atualizar apenas o conteúdo, mantendo o tema e botões
+						const currentContent = document.getElementById('content');
+						if (currentContent) {
+							currentContent.innerHTML = contentMatch[1];
+							
+							// Atualizar lastModified do timestamp
+							if (newTimestamp) {
+								lastModified = newTimestamp;
+							} else {
+								// Fallback: procurar no HTML
+								const timestampMatch = html.match(/data-timestamp="(\\d+)"/);
+								if (timestampMatch) {
+									lastModified = parseInt(timestampMatch[1]);
+								}
+							}
+							
+							// Atualizar também no body
+							if (document.body) {
+								document.body.setAttribute('data-timestamp', lastModified.toString());
+							}
+							
+							// Restaurar scroll
+							setTimeout(() => {
+								restoreScrollPosition();
+								if (statusEl) {
+									statusEl.classList.remove('updating');
+									setTimeout(() => {
+										if (statusEl) {
+											statusEl.style.display = 'none';
+										}
+									}, 500);
+								}
+								isUpdating = false;
+							}, 50);
+						} else {
+							isUpdating = false;
+						}
+					} else {
+						isUpdating = false;
+					}
+				} catch (error) {
+					console.error('Error updating content:', error);
+					if (statusEl) {
+						statusEl.classList.remove('updating');
+						statusEl.style.display = 'none';
+					}
+					isUpdating = false;
+				}
+			}
+			
+			// Iniciar polling para verificar atualizações
+			if (!isFileProtocol) {
+				// Para http/https, verificar mais frequentemente
+				const pollDelay = Math.max(${pollInterval}, 500); // Mínimo 500ms
+				checkInterval = setInterval(checkForUpdates, pollDelay);
+				// Verificar imediatamente ao carregar
+				setTimeout(checkForUpdates, 1000);
+			} else {
+				// Para file://, usar recarregamento periódico quando inativo
+				// Guardar timestamp inicial no sessionStorage para comparar após recarregar
+				const initialTimestamp = lastModified.toString();
+				const savedTimestamp = sessionStorage.getItem('github-readme-viewer-last-timestamp');
+				
+				// Se o timestamp mudou desde a última vez, significa que o ficheiro foi atualizado
+				if (savedTimestamp && parseInt(initialTimestamp) > parseInt(savedTimestamp)) {
+					console.log('File was updated! Timestamp changed from', savedTimestamp, 'to', initialTimestamp);
+				}
+				
+				// Guardar timestamp atual
+				sessionStorage.setItem('github-readme-viewer-last-timestamp', initialTimestamp);
+				
+				console.log('Preview opened in browser (file:// protocol). Auto-updates will occur when you save the file (Ctrl+S).');
+				
+				// Recarregar a página periodicamente quando o utilizador está inativo
+				// Quando recarrega, o novo HTML terá um timestamp atualizado se o ficheiro foi guardado
+				fileCheckInterval = setInterval(function() {
+					// Se o utilizador não está ativo há mais de 2 segundos
+					if (!userActive) {
+						const timeSinceActivity = Date.now() - lastActivity;
+						if (timeSinceActivity > 2000) {
+							// Recarregar a página para verificar se há atualizações
+							// Quando recarrega, compara o novo timestamp com o guardado
+							console.log('User inactive, reloading to check for file updates...');
+							saveScrollPosition();
+							// Guardar posição do scroll no sessionStorage antes de recarregar
+							sessionStorage.setItem('github-readme-viewer-scroll', scrollPosition.toString());
+							// Recarregar após um pequeno delay para garantir que o scroll foi guardado
+							setTimeout(function() {
+								location.reload();
+							}, 100);
+						}
+					}
+				}, 3000); // Verificar a cada 3 segundos
+				
+				// Restaurar posição do scroll se existir (após recarregar)
+				const savedScroll = sessionStorage.getItem('github-readme-viewer-scroll');
+				if (savedScroll) {
+					setTimeout(function() {
+						const scrollPos = parseInt(savedScroll);
+						window.scrollTo(0, scrollPos);
+						// Limpar após restaurar (para não restaurar sempre)
+						sessionStorage.removeItem('github-readme-viewer-scroll');
+					}, 200);
+				}
+			}
+			
+			// Toggle theme (com proteção contra loops)
+			const toggleButton = document.getElementById('toggle');
+			if (toggleButton) {
+				toggleButton.addEventListener('click', function() {
+					// Prevenir múltiplos cliques
+					if (isUpdating) {
+						return;
+					}
+					
+					const newTheme = !isDarkMode;
+					localStorage.setItem('github-readme-viewer-theme', newTheme ? 'dark' : 'light');
+					
+					// Marcar que vamos fazer reload do tema
+					sessionStorage.setItem(themeReloadKey, 'true');
+					
+					// Fazer reload
+					window.location.reload();
+				});
+			}
+			
+			// Carregar tema do localStorage se existir (apenas uma vez no carregamento)
+			if (!hasThemeReloaded) {
+				const savedTheme = localStorage.getItem('github-readme-viewer-theme');
+				if (savedTheme && ((savedTheme === 'dark' && !isDarkMode) || (savedTheme === 'light' && isDarkMode))) {
+					// Marcar que vamos fazer reload do tema
+					sessionStorage.setItem(themeReloadKey, 'true');
+					
+					// Fazer reload após um pequeno delay
+					setTimeout(() => {
+						window.location.reload();
+					}, 100);
+				}
+			}
+			
+			// Limpeza ao fechar
+			window.addEventListener('beforeunload', function() {
+				saveScrollPosition();
+				
+				// Limpar intervalos
+				if (checkInterval) {
+					clearInterval(checkInterval);
+				}
+				if (fileCheckInterval) {
+					clearInterval(fileCheckInterval);
+				}
+				if (activityCheckInterval) {
+					clearInterval(activityCheckInterval);
+				}
+				if (updateDebounceTimer) {
+					clearTimeout(updateDebounceTimer);
+				}
+				
+				// Cancelar XHR pendente
+				cancelPendingUpdate();
+				
+				// Remover event listeners
+				activityEvents.forEach(eventName => {
+					document.removeEventListener(eventName, handleActivity);
+				});
+			});
+		})();
 	</script>
 </body>
 </html>
@@ -756,30 +1153,39 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 				margin: 0;
 			}
 			button {
-				position: fixed;
-				top: 10px;
-				right: 10px;
+				position: fixed !important;
+				top: 10px !important;
+				right: 10px !important;
 				padding: 6px 12px;
 				background-color: var(--vscode-button-background);
 				color: var(--vscode-button-foreground);
 				border: none;
 				border-radius: 6px;
 				cursor: pointer;
-				z-index: 1000;
+				z-index: 9999 !important;
 				transition: background-color 0.2s ease;
 				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				pointer-events: auto !important;
 			}
 			button:hover {
 				background-color: var(--vscode-button-hoverBackground);
 				transform: translateY(-1px);
 				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 			}
-		button:active {
-			transform: translateY(0);
-		}
-		.web-button {
-			right: 120px;
-		}
+			button:active {
+				transform: translateY(0);
+			}
+			.web-button {
+				right: 140px !important;
+				margin-right: 8px;
+			}
+			#toggle {
+				margin-right: 0;
+			}
+			.markdown-body {
+				position: relative;
+				z-index: 1;
+			}
 		${themeAdjustments}
 		</style>
 	</head>
@@ -788,19 +1194,92 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 		${showWebButton ? `<button id="web" class="web-button" title="Open preview in browser">🌐 Web</button>` : ''}
 		<div id="content">${content}</div>
 		<script>
-			const vscode = acquireVsCodeApi();
-			const toggleButton = document.getElementById('toggle');
-			toggleButton.addEventListener('click', () => {
-				vscode.postMessage({ command: 'toggleTheme' });
-			});
-			${showWebButton ? `
-			const webButton = document.getElementById('web');
-			if (webButton) {
-				webButton.addEventListener('click', () => {
-					vscode.postMessage({ command: 'openInBrowser' });
-				});
-			}
-			` : ''}
+			(function() {
+				try {
+					const vscode = acquireVsCodeApi();
+					
+					// Função para configurar os botões
+					function setupButtons() {
+						// Adicionar listener ao botão de toggle theme
+						const toggleButton = document.getElementById('toggle');
+						if (toggleButton) {
+							// Remover listeners anteriores clonando o botão
+							const newToggle = toggleButton.cloneNode(true);
+							toggleButton.parentNode?.replaceChild(newToggle, toggleButton);
+							
+							const btn = document.getElementById('toggle');
+							if (btn) {
+								// Usar onclick e addEventListener para máxima compatibilidade
+								btn.onclick = function(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									e.stopImmediatePropagation();
+									console.log('Toggle theme button clicked - sending message');
+									try {
+										vscode.postMessage({ command: 'toggleTheme' });
+										console.log('Message sent successfully');
+									} catch (err) {
+										console.error('Error posting message:', err);
+									}
+									return false;
+								};
+								// Também adicionar como event listener
+								btn.addEventListener('click', function(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									e.stopImmediatePropagation();
+									console.log('Toggle theme button clicked (addEventListener)');
+									vscode.postMessage({ command: 'toggleTheme' });
+									return false;
+								}, true);
+							}
+						}
+						
+						${showWebButton ? `
+						// Adicionar listener ao botão Web
+						const webButton = document.getElementById('web');
+						if (webButton) {
+							// Remover listeners anteriores clonando o botão
+							const newWebBtn = webButton.cloneNode(true);
+							webButton.parentNode?.replaceChild(newWebBtn, webButton);
+							
+							const wbtn = document.getElementById('web');
+							if (wbtn) {
+								wbtn.onclick = function(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									e.stopImmediatePropagation();
+									console.log('Web button clicked - sending message');
+									vscode.postMessage({ command: 'openInBrowser' });
+									return false;
+								};
+								// Também adicionar como event listener
+								wbtn.addEventListener('click', function(e) {
+									e.preventDefault();
+									e.stopPropagation();
+									e.stopImmediatePropagation();
+									console.log('Web button clicked (addEventListener)');
+									vscode.postMessage({ command: 'openInBrowser' });
+									return false;
+								}, true);
+							}
+						}
+						` : ''}
+					}
+					
+					// Configurar quando o DOM estiver pronto
+					if (document.readyState === 'loading') {
+						document.addEventListener('DOMContentLoaded', setupButtons);
+					} else {
+						setupButtons();
+					}
+					
+					// Configurar novamente após um pequeno delay para garantir
+					setTimeout(setupButtons, 50);
+				} catch (error) {
+					console.error('Error initializing webview script:', error);
+				}
+			})();
 		</script>
 	</body>
 	</html>
