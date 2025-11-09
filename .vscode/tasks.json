@@ -4,6 +4,16 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "build",
+			"type": "npm",
+			"script": "compile-web",
+			"problemMatcher": "$tsc",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
 			"label": "watch-web",
 			"dependsOn": [
 				"npm: watch-web:tsc",
@@ -12,16 +22,12 @@
 			"presentation": {
 				"reveal": "never"
 			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
+			"group": "build"
 		},
 		{
 			"type": "npm",
 			"script": "watch-web:esbuild",
 			"group": "build",
-			"problemMatcher": "$esbuild-watch",
 			"isBackground": true,
 			"label": "npm: watch-web:esbuild",
 			"presentation": {
@@ -41,14 +47,5 @@
 				"reveal": "never"
 			}
 		},
-		{
-			"label": "compile",
-			"type": "npm",
-			"script": "compile-web",
-			"problemMatcher": [
-				"$tsc",
-				"$esbuild"
-			]
-		}
 	]
 }
