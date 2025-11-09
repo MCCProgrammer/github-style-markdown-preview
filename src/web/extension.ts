@@ -79,11 +79,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 			const content = currentDocument.getText();
 			const rendered = md.render(content);
+			
+			// Detectar o tema atual (dark ou light)
+			const colorTheme = vscode.window.activeColorTheme;
+			// Usar dark CSS se o tema for Dark, caso contrário usar light
+			const isDark = colorTheme.kind === vscode.ColorThemeKind.Dark;
+			const cssFile = isDark ? 'github-markdown-dark.css' : 'github-markdown-light.css';
+			
 			const githubCssUri = panel.webview.asWebviewUri(
-				vscode.Uri.joinPath(context.extensionUri, 'node_modules', 'github-markdown-css', 'github-markdown-light.css')
+				vscode.Uri.joinPath(context.extensionUri, 'node_modules', 'github-markdown-css', cssFile)
 			);
 
-			panel.webview.html = getWebviewHtml(rendered, githubCssUri, currentMode, content);
+			panel.webview.html = getWebviewHtml(rendered, githubCssUri, currentMode, content, isDark);
 		};
 
 		// Debounce para atualizar a preview (evita muitos re-renders durante a digitação)
@@ -104,6 +111,11 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 
+		// Listener para mudanças de tema - atualiza a preview quando o tema muda
+		const themeChangeSubscription = vscode.window.onDidChangeActiveColorTheme(() => {
+			updateWebview();
+		});
+
 		panel.webview.onDidReceiveMessage(async (msg) => {
 			if (msg.command === 'toggleView') {
 				currentMode = currentMode === 'github' ? 'raw' : 'github';
@@ -115,6 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Limpar subscriptions quando o painel for fechado
 		panel.onDidDispose(() => {
 			changeSubscription.dispose();
+			themeChangeSubscription.dispose();
 			if (updateTimeout) {
 				clearTimeout(updateTimeout);
 			}
@@ -126,12 +139,25 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 }
 
-function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, mode: 'github' | 'raw', rawContent: string): string {
+function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, mode: 'github' | 'raw', rawContent: string, isDark: boolean): string {
 	const content = mode === 'raw'
 		? `<pre style="white-space: pre-wrap; font-family: monospace; padding: 2rem;">${escapeHtml(rawContent)}</pre>`
 		: `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
 	
 	const buttonText = mode === 'github' ? 'Show Raw' : 'Show GitHub';
+	
+	// Ajustar cores do markdown-body para corresponder ao tema do VS Code quando em modo dark
+	const themeAdjustments = isDark ? `
+			.markdown-body {
+				color-scheme: dark;
+			}
+			.markdown-body pre {
+				background-color: var(--vscode-textBlockQuote-background);
+			}
+			.markdown-body code {
+				background-color: var(--vscode-textCodeBlock-background);
+			}
+		` : '';
 
 	return /*html*/ `
 	<!DOCTYPE html>
@@ -158,10 +184,12 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, mode: 'github'
 				border: none;
 				border-radius: 6px;
 				cursor: pointer;
+				z-index: 1000;
 			}
 			button:hover {
 				background-color: var(--vscode-button-hoverBackground);
 			}
+			${themeAdjustments}
 		</style>
 	</head>
 	<body>

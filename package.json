@@ -15,9 +15,19 @@
     "commands": [
       {
         "command": "github-readme-viewer.openReadme",
-        "title": "Open README Preview"
+        "title": "Open README Preview",
+        "icon": "$(preview)"
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "github-readme-viewer.openReadme",
+          "when": "resourceFilename =~ /readme\\.md$/i",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",
