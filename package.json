@@ -1,40 +1,57 @@
 {
-  "name": "github-readme-viewer",
+  "name": "github-style-markdown-preview",
   "displayName": "GitHub Style Markdown Preview",
-  "description": "View README.md files like on GitHub with dark/light mode toggle.",
+  "description": "View Markdown files like on GitHub with dark/light mode toggle, auto-update, browser preview, and customizable settings.",
   "version": "0.0.1",
+  "publisher": "MCCProgrammer",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Programming Languages",
+    "Visualization"
   ],
+  "keywords": [
+    "markdown",
+    "github",
+    "preview",
+    "readme",
+    "documentation",
+    "gfm",
+    "emoji"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCCProgrammer/github-style-markdown-preview.git"
+  },
   "activationEvents": [],
   "browser": "./dist/web/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "github-readme-viewer.openReadme",
-        "title": "Open README Preview",
+        "command": "github-style-markdown-preview.openMarkDown",
+        "title": "Open Markdown Preview",
         "icon": "$(preview)",
-        "category": "GitHub README Viewer"
+        "category": "GitHub Style Markdown Preview"
       },
       {
-        "command": "github-readme-viewer.toggleTheme",
+        "command": "github-style-markdown-preview.toggleTheme",
         "title": "Toggle Preview Theme",
         "icon": "$(color-mode)",
-        "category": "GitHub README Viewer"
+        "category": "GitHub Style Markdown Preview"
       }
     ],
     "keybindings": [
       {
-        "command": "github-readme-viewer.openReadme",
+        "command": "github-style-markdown-preview.openMarkDown",
         "key": "alt+r",
         "mac": "opt+r",
         "when": "editorTextFocus && editorLangId == markdown"
       },
       {
-        "command": "github-readme-viewer.toggleTheme",
+        "command": "github-style-markdown-preview.toggleTheme",
         "key": "ctrl+shift+t",
         "mac": "cmd+shift+t",
         "when": "activeWebviewPanelId == 'githubReadmePreview'"
@@ -43,35 +60,35 @@
     "menus": {
       "editor/title": [
         {
-          "command": "github-readme-viewer.openReadme",
+          "command": "github-style-markdown-preview.openMarkDown",
           "when": "editorLangId == markdown && !isInDiffEditor",
           "group": "navigation"
         }
       ],
       "webview/title": [
         {
-          "command": "github-readme-viewer.toggleTheme",
+          "command": "github-style-markdown-preview.toggleTheme",
           "when": "webviewId == githubReadmePreview",
           "group": "navigation"
         }
       ]
     },
     "configuration": {
-      "title": "GitHub README Viewer",
+      "title": "GitHub Style Markdown Preview",
       "properties": {
-        "github-readme-viewer.autoOpen": {
+        "github-style-markdown-preview.autoOpen": {
           "type": "boolean",
           "default": false,
           "description": "Automatically open preview when a markdown file is opened"
         },
-        "github-readme-viewer.updateDelay": {
+        "github-style-markdown-preview.updateDelay": {
           "type": "number",
           "default": 300,
           "description": "Delay in milliseconds before updating preview after editing (0 = instant update)",
           "minimum": 0,
           "maximum": 2000
         },
-        "github-readme-viewer.supportedFiles": {
+        "github-style-markdown-preview.supportedFiles": {
           "type": "array",
           "default": [
             "*.md"
@@ -81,17 +98,17 @@
             "type": "string"
           }
         },
-        "github-readme-viewer.protectPreviewColumn": {
+        "github-style-markdown-preview.protectPreviewColumn": {
           "type": "boolean",
           "default": false,
           "description": "Protect the preview column from other files. When enabled, the preview uses a dedicated column and other files opened in that column will be moved to the first column."
         },
-        "github-readme-viewer.openInBrowser": {
+        "github-style-markdown-preview.openInBrowser": {
           "type": "boolean",
           "default": false,
           "description": "Open preview in external browser instead of VS Code webview panel. The preview will update automatically as you edit the file."
         },
-        "github-readme-viewer.maxWidth": {
+        "github-style-markdown-preview.maxWidth": {
           "type": [
             "number",
             "string"
@@ -100,31 +117,31 @@
           "description": "Maximum width of the content in the preview (in pixels). Use 'auto' for full width. Default GitHub width is 980px.",
           "markdownDescription": "Maximum width of the content in the preview (in pixels). Use `auto` for full width. **Default GitHub width is 980px.**"
         },
-        "github-readme-viewer.enableEmoji": {
+        "github-style-markdown-preview.enableEmoji": {
           "type": "boolean",
           "default": true,
           "description": "Enable emoji rendering (e.g., :smile:, :heart:). Applies to both IDE and browser previews."
         },
-        "github-readme-viewer.enableBreaks": {
+        "github-style-markdown-preview.enableBreaks": {
           "type": "boolean",
           "default": false,
           "description": "Convert single line breaks to HTML line breaks (similar to GitHub behavior). Applies to both IDE and browser previews."
         },
-        "github-readme-viewer.closeOnFileClose": {
+        "github-style-markdown-preview.closeOnFileClose": {
           "type": "boolean",
           "default": true,
           "description": "Automatically close preview when the markdown file is closed (IDE preview only)."
         },
-        "github-readme-viewer.focusEditorAfterOpen": {
+        "github-style-markdown-preview.focusEditorAfterOpen": {
           "type": "boolean",
           "default": true,
           "description": "Focus the editor after opening the preview, allowing you to continue editing (IDE preview only)."
         },
-        "github-readme-viewer.openPreviewKeybinding": {
+        "github-style-markdown-preview.openPreviewKeybinding": {
           "type": "string",
           "default": "alt+r",
-          "description": "⚠️ INFORMATIONAL ONLY: Default keyboard shortcut is 'alt+r' (or 'Opt+R' on Mac). To customize, go to File > Preferences > Keyboard Shortcuts (Ctrl+K Ctrl+S) and search for 'Open README Preview'. This setting does not change the actual keybinding - it's for reference only.",
-          "markdownDescription": "⚠️ **INFORMATIONAL ONLY**: Default keyboard shortcut is `alt+r`. **To customize:** Go to `File > Preferences > Keyboard Shortcuts` (or `Ctrl+K Ctrl+S`) and search for `Open README Preview`. **This setting does not change the actual keybinding** - it's for reference only."
+          "description": "⚠️ INFORMATIONAL ONLY: Default keyboard shortcut is 'alt+r' (or 'Opt+R' on Mac). To customize, go to File > Preferences > Keyboard Shortcuts (Ctrl+K Ctrl+S) and search for 'Open Markdown Preview'. This setting does not change the actual keybinding - it's for reference only.",
+          "markdownDescription": "⚠️ **INFORMATIONAL ONLY**: Default keyboard shortcut is `alt+r`. **To customize:** Go to `File > Preferences > Keyboard Shortcuts` (or `Ctrl+K Ctrl+S`) and search for `Open Markdown Preview`. **This setting does not change the actual keybinding** - it's for reference only."
         }
       }
     }

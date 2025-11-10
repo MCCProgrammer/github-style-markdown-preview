@@ -12,10 +12,10 @@ import { full as emoji } from 'markdown-it-emoji';
  * Cada ficheiro tem a sua própria preferência de tema (dark/light) guardada.
  * 
  * @param document - O documento para o qual gerar a chave
- * @returns Chave única no formato: "github-readme-viewer.theme-mode.{uri}"
+ * @returns Chave única no formato: "github-style-markdown-preview.theme-mode.{uri}"
  */
 function getThemePreferenceKey(document: vscode.TextDocument): string {
-	return `github-readme-viewer.theme-mode.${document.uri.toString()}`;
+	return `github-style-markdown-preview.theme-mode.${document.uri.toString()}`;
 }
 
 /**
@@ -50,10 +50,10 @@ function loadThemePreference(context: vscode.ExtensionContext, document: vscode.
  * Isto previne que o auto-open reabra previews que o utilizador fechou explicitamente.
  * 
  * @param document - O documento para o qual gerar a chave
- * @returns Chave única no formato: "github-readme-viewer.preview-closed.{uri}"
+ * @returns Chave única no formato: "github-style-markdown-preview.preview-closed.{uri}"
  */
 function getPreviewClosedKey(document: vscode.TextDocument): string {
-	return `github-readme-viewer.preview-closed.${document.uri.toString()}`;
+	return `github-style-markdown-preview.preview-closed.${document.uri.toString()}`;
 }
 
 /**
@@ -98,7 +98,7 @@ function isPreviewClosed(context: vscode.ExtensionContext, document: vscode.Text
  * @returns true se o documento é suportado, false caso contrário
  */
 function isFileSupported(document: vscode.TextDocument): boolean {
-	const config = vscode.workspace.getConfiguration('github-readme-viewer');
+	const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 	const supportedPatterns = config.get<string[]>('supportedFiles', ['*.md']);
 	const fileName = document.fileName;
 	
@@ -134,7 +134,7 @@ function isFileSupported(document: vscode.TextDocument): boolean {
  */
 export function activate(context: vscode.ExtensionContext) {
 	try {
-	console.log('GitHub README Viewer is active!');
+	console.log('GitHub Style Markdown Preview is active!');
 
 		// ========================================================================
 		// ESTRUTURAS DE DADOS PARA GESTÃO DE PREVIEWS
@@ -226,7 +226,7 @@ export function activate(context: vscode.ExtensionContext) {
 			let isDarkMode = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
 
 			// Carregar configurações
-			const config = vscode.workspace.getConfiguration('github-readme-viewer');
+			const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 			const enableEmoji = config.get<boolean>('enableEmoji', true);
 			const enableBreaks = config.get<boolean>('enableBreaks', false);
 			const maxWidthConfig = config.get<number | string>('maxWidth', 980);
@@ -498,7 +498,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const documentUri = document.uri.toString();
 
 			// Carregar configurações da extensão
-			const config = vscode.workspace.getConfiguration('github-readme-viewer');
+			const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 			const updateDelay = config.get<number>('updateDelay', 300);
 			const protectPreviewColumn = config.get<boolean>('protectPreviewColumn', false);
 
@@ -631,7 +631,7 @@ export function activate(context: vscode.ExtensionContext) {
 				);
 
 				// Verificar se a configuração openInBrowser está ativa para mostrar o botão Web
-				const currentConfig = vscode.workspace.getConfiguration('github-readme-viewer');
+				const currentConfig = vscode.workspace.getConfiguration('github-style-markdown-preview');
 				const openInBrowser = currentConfig.get<boolean>('openInBrowser', false);
 				const maxWidthConfig = currentConfig.get<number | string>('maxWidth', 980);
 				// Garantir que maxWidth nunca seja 0, usar 980 como padrão
@@ -714,7 +714,7 @@ export function activate(context: vscode.ExtensionContext) {
 			 * É chamada quando o utilizador clica no botão "Web" na preview do IDE.
 			 */
 			const openInBrowserAndClose = async () => {
-				const config = vscode.workspace.getConfiguration('github-readme-viewer');
+				const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 				const updateDelay = config.get<number>('updateDelay', 300);
 				// Fechar painel do IDE primeiro
 				panel.dispose();
@@ -785,11 +785,11 @@ export function activate(context: vscode.ExtensionContext) {
 		// ========================================================================
 		
 		/**
-		 * Comando: Abrir README Preview
+		 * Comando: Abrir Markdown Preview
 		 * 
 		 * Abre uma preview estilo GitHub para o ficheiro markdown atualmente ativo.
 		 * Pode ser acionado via:
-		 * - Command Palette: "GitHub README Viewer: Open README Preview"
+		 * - Command Palette: "GitHub Style Markdown Preview: Open Markdown Preview"
 		 * - Atalho de teclado: Alt+R (quando a editar markdown)
 		 * - Botão no título do editor: ícone Preview (quando a editar markdown)
 		 * 
@@ -797,7 +797,7 @@ export function activate(context: vscode.ExtensionContext) {
 		 * - Se false: Abre preview no painel webview do IDE
 		 * - Se true: Abre preview no browser externo
 		 */
-		const openCommand = vscode.commands.registerCommand('github-readme-viewer.openReadme', async () => {
+		const openCommand = vscode.commands.registerCommand('github-style-markdown-preview.openMarkDown', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			vscode.window.showErrorMessage('Nenhum ficheiro aberto.');
@@ -821,13 +821,13 @@ export function activate(context: vscode.ExtensionContext) {
 		 * 
 		 * Alterna entre tema dark e light para a preview atualmente visível.
 		 * Pode ser acionado via:
-		 * - Command Palette: "GitHub README Viewer: Toggle Preview Theme"
+		 * - Command Palette: "GitHub Style Markdown Preview: Toggle Preview Theme"
 		 * - Atalho de teclado: Ctrl+Shift+T (quando a preview está ativa)
 		 * - Botão na preview: botão de toggle de tema no webview
 		 * 
 		 * A preferência de tema é guardada por ficheiro e persiste entre sessões do VS Code.
 		 */
-		const toggleThemeCommand = vscode.commands.registerCommand('github-readme-viewer.toggleTheme', async () => {
+		const toggleThemeCommand = vscode.commands.registerCommand('github-style-markdown-preview.toggleTheme', async () => {
 			// Encontrar o painel de preview atualmente visível/ativo
 			const activePanel = Array.from(activePanels.values()).find(panel => panel.visible);
 			if (activePanel && (activePanel as any).toggleTheme) {
@@ -850,7 +850,7 @@ export function activate(context: vscode.ExtensionContext) {
 		 */
 		const closePreviewOnDocumentClose = vscode.workspace.onDidCloseTextDocument((document) => {
 			if (isFileSupported(document)) {
-				const config = vscode.workspace.getConfiguration('github-readme-viewer');
+				const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 				const closeOnFileClose = config.get<boolean>('closeOnFileClose', true);
 				
 				if (closeOnFileClose) {
@@ -882,7 +882,7 @@ export function activate(context: vscode.ExtensionContext) {
 		 * 
 		 * Isto proporciona uma experiência fluida similar a extensões de live preview.
 		 */
-		const config = vscode.workspace.getConfiguration('github-readme-viewer');
+		const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 		if (config.get<boolean>('autoOpen', false)) {
 			/**
 			 * Verifica ficheiros atualmente abertos e abre previews para ficheiros markdown suportados.
@@ -1077,8 +1077,8 @@ export function activate(context: vscode.ExtensionContext) {
 		// Registar todos os comandos para que sejam limpos corretamente quando a extensão desativar
 		context.subscriptions.push(openCommand, toggleThemeCommand);
 	} catch (error) {
-		console.error('Error activating GitHub README Viewer:', error);
-		vscode.window.showErrorMessage(`GitHub README Viewer failed to activate: ${error}`);
+		console.error('Error activating GitHub Style Markdown Preview:', error);
+		vscode.window.showErrorMessage(`GitHub Style Markdown Preview failed to activate: ${error}`);
 	}
 }
 
@@ -1151,7 +1151,7 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="refresh" content="${Math.ceil(refreshInterval / 1000) + 1}">
 	<link rel="stylesheet" href="${cssUrl}">
-	<title>README Preview</title>
+	<title>Markdown Preview</title>
 	<style>
 		body {
 			background-color: ${isDark ? '#0d1117' : '#ffffff'};
@@ -1241,7 +1241,7 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="${cssUri}">
-		<title>README Preview</title>
+		<title>Markdown Preview</title>
 		<style>
 			body {
 				background-color: var(--vscode-editor-background);

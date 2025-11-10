@@ -26,9 +26,9 @@ Uma extensão para Visual Studio Code que permite visualizar ficheiros Markdown 
 
 Existem três formas de abrir a preview:
 
-1. **Botão no Editor**: Clique no botão "Open README Preview" na barra de título do editor
+1. **Botão no Editor**: Clique no botão "Open Markdown Preview" na barra de título do editor
 2. **Atalho de Teclado**: Pressione `Alt+R` (Windows/Linux) ou `Opt+R` (Mac)
-3. **Command Palette**: Pressione `F1` ou `Ctrl+Shift+P` e digite "Open README Preview"
+3. **Command Palette**: Pressione `F1` ou `Ctrl+Shift+P` e digite "Open Markdown Preview"
 
 ### Alternar Tema
 
@@ -40,36 +40,36 @@ Existem três formas de abrir a preview:
 
 A extensão suporta as seguintes configurações:
 
-### `github-readme-viewer.autoOpen`
+### `github-style-markdown-preview.autoOpen`
 Abre automaticamente a preview quando um ficheiro Markdown é aberto.
 
 **Padrão**: `false`
 
 ```json
 {
-  "github-readme-viewer.autoOpen": true
+  "github-style-markdown-preview.autoOpen": true
 }
 ```
 
-### `github-readme-viewer.updateDelay`
+### `github-style-markdown-preview.updateDelay`
 Delay em milissegundos antes de atualizar a preview após editar (debouncing).
 
 **Padrão**: `300`
 
 ```json
 {
-  "github-readme-viewer.updateDelay": 500
+  "github-style-markdown-preview.updateDelay": 500
 }
 ```
 
-### `github-readme-viewer.supportedFiles`
+### `github-style-markdown-preview.supportedFiles`
 Padrões de ficheiros suportados (sintaxe glob).
 
 **Padrão**: `["*.md"]`
 
 ```json
 {
-  "github-readme-viewer.supportedFiles": [
+  "github-style-markdown-preview.supportedFiles": [
     "*.md",
     "*.markdown",
     "README*"
@@ -77,25 +77,25 @@ Padrões de ficheiros suportados (sintaxe glob).
 }
 ```
 
-### `github-readme-viewer.protectPreviewColumn`
+### `github-style-markdown-preview.protectPreviewColumn`
 Protege a coluna da preview (coluna 2) de outros ficheiros.
 
 **Padrão**: `false`
 
 ```json
 {
-  "github-readme-viewer.protectPreviewColumn": true
+  "github-style-markdown-preview.protectPreviewColumn": true
 }
 ```
 
-### `github-readme-viewer.openInBrowser`
+### `github-style-markdown-preview.openInBrowser`
 Mostra um botão "Web" na preview do IDE para abrir no navegador externo.
 
 **Padrão**: `false`
 
 ```json
 {
-  "github-readme-viewer.openInBrowser": true
+  "github-style-markdown-preview.openInBrowser": true
 }
 ```
 
@@ -105,7 +105,7 @@ Mostra um botão "Web" na preview do IDE para abrir no navegador externo.
 - O browser preview usa o tema preferido guardado (não tem botão de toggle dark/light mode)
 - Requer um workspace aberto para funcionar corretamente (cria ficheiro HTML temporário na pasta `.vscode`)
 
-### `github-readme-viewer.maxWidth`
+### `github-style-markdown-preview.maxWidth`
 Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura total.
 
 **Padrão**: `980` (pixels)
@@ -114,58 +114,58 @@ Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura t
 
 ```json
 {
-  "github-readme-viewer.maxWidth": 980
+  "github-style-markdown-preview.maxWidth": 980
 }
 ```
 
 Ou para largura total:
 ```json
 {
-  "github-readme-viewer.maxWidth": "auto"
+  "github-style-markdown-preview.maxWidth": "auto"
 }
 ```
 
-### `github-readme-viewer.enableEmoji`
+### `github-style-markdown-preview.enableEmoji`
 Ativa a renderização de emojis (ex: :smile:, :heart:). Aplica-se tanto à preview do IDE quanto à do browser.
 
 **Padrão**: `true`
 
 ```json
 {
-  "github-readme-viewer.enableEmoji": true
+  "github-style-markdown-preview.enableEmoji": true
 }
 ```
 
-### `github-readme-viewer.enableBreaks`
+### `github-style-markdown-preview.enableBreaks`
 Converte quebras de linha simples em quebras de linha HTML (comportamento similar ao GitHub). Aplica-se tanto à preview do IDE quanto à do browser.
 
 **Padrão**: `false`
 
 ```json
 {
-  "github-readme-viewer.enableBreaks": true
+  "github-style-markdown-preview.enableBreaks": true
 }
 ```
 
-### `github-readme-viewer.closeOnFileClose`
+### `github-style-markdown-preview.closeOnFileClose`
 Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas preview do IDE).
 
 **Padrão**: `true`
 
 ```json
 {
-  "github-readme-viewer.closeOnFileClose": true
+  "github-style-markdown-preview.closeOnFileClose": true
 }
 ```
 
-### `github-readme-viewer.focusEditorAfterOpen`
+### `github-style-markdown-preview.focusEditorAfterOpen`
 Foca no editor após abrir a preview, permitindo continuar a editar (apenas preview do IDE).
 
 **Padrão**: `true`
 
 ```json
 {
-  "github-readme-viewer.focusEditorAfterOpen": true
+  "github-style-markdown-preview.focusEditorAfterOpen": true
 }
 ```
 
@@ -175,7 +175,7 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 
 **Para personalizar o atalho:**
 1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
-2. Procure por "Open README Preview"
+2. Procure por "Open Markdown Preview"
 3. Clique duas vezes no atalho atual
 4. Pressione a nova combinação de teclas desejada
 5. O atalho será atualizado automaticamente
@@ -187,7 +187,7 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 | `Alt+R` / `Opt+R` | Abrir preview (personalizável em Keyboard Shortcuts) |
 | `Ctrl+Shift+T` / `Cmd+Shift+T` | Alternar tema (dark/light) |
 
-**Nota**: Para personalizar o atalho de abrir preview, vá para `File > Preferences > Keyboard Shortcuts` (ou `Ctrl+K Ctrl+S`) e procure por "Open README Preview".
+**Nota**: Para personalizar o atalho de abrir preview, vá para `File > Preferences > Keyboard Shortcuts` (ou `Ctrl+K Ctrl+S`) e procure por "Open Markdown Preview".
 
 ## 📚 Documentação
 
@@ -203,15 +203,19 @@ Nenhum problema conhecido no momento.
 
 ## 📝 Notas de Lançamento
 
-### 0.0.1
-- Lançamento inicial
-- Preview estilo GitHub
-- Suporte para temas dark e light
-- Atualização automática
-- Preferências por ficheiro
+Consulte [CHANGELOG.md](CHANGELOG.md) para histórico completo de versões.
+
+### 0.0.1 - Lançamento Inicial
+- Preview estilo GitHub para ficheiros Markdown
+- Suporte para temas dark e light com toggle
+- Atualização automática em tempo real
+- Preferências de tema guardadas por ficheiro
 - Auto-open opcional
-- Preview no browser
-- Proteção de coluna
+- Preview no browser externo
+- Proteção de coluna de preview
+- Configurações personalizáveis (maxWidth, emoji, breaks, etc.)
+- Suporte completo para GitHub Flavored Markdown
+- Suporte para emojis GitHub (:smile:, :rocket:, etc.)
 
 ## 🤝 Contribuições
 
@@ -225,6 +229,7 @@ Este projeto está sob licença MIT.
 
 - [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css) pelo estilo CSS
 - [markdown-it](https://github.com/markdown-it/markdown-it) pelo renderizador Markdown
+- [markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji) pelo suporte a emojis
 
 ---
 

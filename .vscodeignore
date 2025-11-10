@@ -14,3 +14,7 @@ esbuild.js
 **/*.map
 **/*.ts
 **/.vscode-test.*
+CONFIGURATION_IDEAS.md
+PUBLISHING.md
+PUBLISHING_STEPS.md
+*.vsix
