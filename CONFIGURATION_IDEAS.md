@@ -1,5 +1,6 @@
 **GitHub Markdown Preview** ⭐ (Recomendado)
-
+Para além disso quero dividir em geral que da para preview ide e web. e so web e so ide.
+Pode estar o grupo e depois tem se é de layout, ect.
 #### `github-readme-viewer.maxWidth`
 - **Tipo**: `number` | `string`
 - **Padrão**: `980` (pixels) ou `"auto"`
