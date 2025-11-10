@@ -488,6 +488,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// Carregar configurações para markdown-it
 			const enableEmoji = config.get<boolean>('enableEmoji', true);
 			const enableBreaks = config.get<boolean>('enableBreaks', false);
+			const maxWidthConfig = config.get<number | string>('maxWidth', 980);
+			// Garantir que maxWidth nunca seja 0, usar 980 como padrão
+			const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 			
 			// Inicializar renderizador Markdown com configurações
 			const md = new MarkdownIt({
@@ -495,11 +498,54 @@ export function activate(context: vscode.ExtensionContext) {
 				html: false, // Por segurança, não permitir HTML inline
 				linkify: true, // Converter URLs em links automaticamente
 			});
+			
+			// Adicionar suporte para emojis se ativado
+			if (enableEmoji) {
+				// Adicionar suporte básico para emojis :smile: etc
+				md.core.ruler.push('emoji', (state) => {
+					const emojiMap: { [key: string]: string } = {
+						':smile:': '😄',
+						':heart:': '❤️',
+						':thumbsup:': '👍',
+						':thumbsdown:': '👎',
+						':fire:': '🔥',
+						':rocket:': '🚀',
+						':star:': '⭐',
+						':warning:': '⚠️',
+						':check:': '✅',
+						':x:': '❌',
+						':+1:': '👍',
+						':-1:': '👎',
+						':100:': '💯',
+						':ok_hand:': '👌',
+						':clap:': '👏',
+						':tada:': '🎉',
+						':sparkles:': '✨',
+					};
+					
+					for (let i = 0; i < state.tokens.length; i++) {
+						const token = state.tokens[i];
+						if (token.type === 'inline' && token.children) {
+							for (let j = 0; j < token.children.length; j++) {
+								const child = token.children[j];
+								if (child.type === 'text') {
+									let content = child.content;
+									for (const [key, value] of Object.entries(emojiMap)) {
+										content = content.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
+									}
+									child.content = content;
+								}
+							}
+						}
+					}
+				});
+			}
 
 			// Extrair nome do ficheiro para o título do painel (ex: "README.md Preview")
 			const fileName = document.fileName.split(/[/\\]/).pop() || 'README.md';
 			
 			// Determinar coluna de visualização baseada nas configurações
+			// Carregar previewPosition novamente aqui para garantir que está correto
 			const previewPosition = config.get<string>('previewPosition', 'beside');
 			let previewViewColumn: vscode.ViewColumn;
 			
