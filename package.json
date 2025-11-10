@@ -24,7 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MCCProgrammer/github-style-markdown-preview.git"
+    "url": "https://github.com/MCCProgrammer/github-style-markdown-preview"
   },
   "activationEvents": [],
   "browser": "./dist/web/extension.js",
