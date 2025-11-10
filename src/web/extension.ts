@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import MarkdownIt from 'markdown-it';
 // @ts-ignore - markdown-it-emoji não tem tipos TypeScript oficiais
-import { light as emoji } from 'markdown-it-emoji';
+import { full as emoji } from 'markdown-it-emoji';
 
 // ============================================================================
 // UTILITY FUNCTIONS - Funções auxiliares para gestão de estado e preferências
@@ -242,7 +242,8 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			// Adicionar suporte para emojis se ativado
 			if (enableEmoji) {
-				// Usar markdown-it-emoji para renderizar emojis :smile:, :heart:, etc.
+				// Usar markdown-it-emoji (full) para renderizar todos os emojis disponíveis
+				// Suporta :smile:, :rocket:, :heart:, e todos os outros emojis GitHub
 				md.use(emoji);
 			}
 			
@@ -533,7 +534,8 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			// Adicionar suporte para emojis se ativado
 			if (enableEmoji) {
-				// Usar markdown-it-emoji para renderizar emojis :smile:, :heart:, etc.
+				// Usar markdown-it-emoji (full) para renderizar todos os emojis disponíveis
+				// Suporta :smile:, :rocket:, :heart:, e todos os outros emojis GitHub
 				md.use(emoji);
 			}
 
