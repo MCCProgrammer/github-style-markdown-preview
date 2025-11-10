@@ -147,23 +147,6 @@ Converte quebras de linha simples em quebras de linha HTML (comportamento simila
 }
 ```
 
-### `github-readme-viewer.previewPosition`
-Posição inicial do painel de preview (apenas preview do IDE).
-
-**Padrão**: `"beside"`
-
-**Valores**:
-- `"beside"` - Abre ao lado do editor ativo (VS Code decide a melhor posição)
-- `"right"` - Abre na coluna direita (coluna 2)
-- `"below"` - Abre abaixo do editor ativo
-- `"active"` - Abre na coluna do editor ativo
-
-```json
-{
-  "github-readme-viewer.previewPosition": "right"
-}
-```
-
 ### `github-readme-viewer.closeOnFileClose`
 Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas preview do IDE).
 
@@ -186,12 +169,25 @@ Foca no editor após abrir a preview, permitindo continuar a editar (apenas prev
 }
 ```
 
+### Personalizar Atalho de Teclado
+
+O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
+
+**Para personalizar o atalho:**
+1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
+2. Procure por "Open README Preview"
+3. Clique duas vezes no atalho atual
+4. Pressione a nova combinação de teclas desejada
+5. O atalho será atualizado automaticamente
+
 ## 🎯 Atalhos de Teclado
 
 | Atalho | Ação |
 |--------|------|
-| `Alt+R` / `Opt+R` | Abrir preview |
+| `Alt+R` / `Opt+R` | Abrir preview (personalizável em Keyboard Shortcuts) |
 | `Ctrl+Shift+T` / `Cmd+Shift+T` | Alternar tema (dark/light) |
+
+**Nota**: Para personalizar o atalho de abrir preview, vá para `File > Preferences > Keyboard Shortcuts` (ou `Ctrl+K Ctrl+S`) e procure por "Open README Preview".
 
 ## 📚 Documentação
 

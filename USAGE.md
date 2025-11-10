@@ -202,24 +202,6 @@ Ou para largura total:
 }
 ```
 
-#### `github-readme-viewer.previewPosition`
-- **Tipo**: `string`
-- **Padrão**: `"beside"`
-- **Descrição**: Posição inicial do painel de preview (apenas preview do IDE).
-- **Valores**:
-  - `"beside"` - Abre ao lado do editor ativo (VS Code decide a melhor posição)
-  - `"right"` - Abre na coluna direita (coluna 2)
-  - `"below"` - Abre abaixo do editor ativo
-  - `"active"` - Abre na coluna do editor ativo
-- **Recomendação**: Use `"beside"` para posicionamento automático ou `"right"` para sempre abrir na coluna direita
-
-**Exemplo:**
-```json
-{
-  "github-readme-viewer.previewPosition": "right"
-}
-```
-
 #### `github-readme-viewer.closeOnFileClose`
 - **Tipo**: `boolean`
 - **Padrão**: `true`
@@ -245,6 +227,19 @@ Ou para largura total:
   "github-readme-viewer.focusEditorAfterOpen": true
 }
 ```
+
+### Personalizar Atalho de Teclado
+
+O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
+
+**Para personalizar o atalho:**
+1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
+2. Procure por "Open README Preview"
+3. Clique duas vezes no atalho atual
+4. Pressione a nova combinação de teclas desejada
+5. O atalho será atualizado automaticamente
+
+**Nota**: Os atalhos de teclado não podem ser configurados através das configurações da extensão. Eles devem ser personalizados através das preferências de Keyboard Shortcuts do VS Code.
 
 ## 🎨 Funcionalidades
 

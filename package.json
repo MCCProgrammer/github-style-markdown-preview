@@ -73,7 +73,9 @@
         },
         "github-readme-viewer.supportedFiles": {
           "type": "array",
-          "default": ["*.md"],
+          "default": [
+            "*.md"
+          ],
           "description": "File patterns to support (e.g., ['*.md', 'README*', '*.markdown'])",
           "items": {
             "type": "string"
@@ -90,7 +92,10 @@
           "description": "Open preview in external browser instead of VS Code webview panel. The preview will update automatically as you edit the file."
         },
         "github-readme-viewer.maxWidth": {
-          "type": ["number", "string"],
+          "type": [
+            "number",
+            "string"
+          ],
           "default": 980,
           "description": "Maximum width of the content in the preview (in pixels). Use 'auto' for full width. Default GitHub width is 980px.",
           "markdownDescription": "Maximum width of the content in the preview (in pixels). Use `auto` for full width. **Default GitHub width is 980px.**"
@@ -105,18 +110,6 @@
           "default": false,
           "description": "Convert single line breaks to HTML line breaks (similar to GitHub behavior). Applies to both IDE and browser previews."
         },
-        "github-readme-viewer.previewPosition": {
-          "type": "string",
-          "enum": ["beside", "right", "below", "active"],
-          "default": "beside",
-          "description": "Initial position of the preview panel (IDE preview only).",
-          "enumDescriptions": [
-            "Open preview beside the active editor (VS Code decides best position)",
-            "Open preview in the right column (column 2)",
-            "Open preview below the active editor",
-            "Open preview in the active editor column"
-          ]
-        },
         "github-readme-viewer.closeOnFileClose": {
           "type": "boolean",
           "default": true,
@@ -126,6 +119,11 @@
           "type": "boolean",
           "default": true,
           "description": "Focus the editor after opening the preview, allowing you to continue editing (IDE preview only)."
+        },
+        "github-readme-viewer.openPreviewKeybinding": {
+          "type": "null",
+          "description": "Keyboard shortcut to open the preview. Default is 'alt+r' (or 'Opt+R' on Mac). To customize, go to File > Preferences > Keyboard Shortcuts and search for 'Open README Preview'. Note: This setting is informational only - you must configure the keybinding manually in VS Code settings.",
+          "markdownDescription": "Keyboard shortcut to open the preview. Default is `alt+r`. **To customize:** Go to `File > Preferences > Keyboard Shortcuts` (or `Ctrl+K Ctrl+S`) and search for `Open README Preview` to change the keybinding. This setting is informational only."
         }
       }
     }
@@ -162,6 +160,7 @@
   "dependencies": {
     "@types/markdown-it": "^14.1.2",
     "github-markdown-css": "^5.8.1",
-    "markdown-it": "^14.1.0"
+    "markdown-it": "^14.1.0",
+    "markdown-it-emoji": "^3.0.0"
   }
 }

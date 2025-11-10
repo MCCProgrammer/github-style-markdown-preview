@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import MarkdownIt from 'markdown-it';
+// @ts-ignore - markdown-it-emoji não tem tipos TypeScript oficiais
+import { light as emoji } from 'markdown-it-emoji';
 
 // ============================================================================
 // UTILITY FUNCTIONS - Funções auxiliares para gestão de estado e preferências
@@ -227,7 +229,9 @@ export function activate(context: vscode.ExtensionContext) {
 			const config = vscode.workspace.getConfiguration('github-readme-viewer');
 			const enableEmoji = config.get<boolean>('enableEmoji', true);
 			const enableBreaks = config.get<boolean>('enableBreaks', false);
-			const maxWidth = config.get<number | string>('maxWidth', 980);
+			const maxWidthConfig = config.get<number | string>('maxWidth', 980);
+			// Garantir que maxWidth nunca seja 0, usar 980 como padrão
+			const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 			
 			// Inicializar renderizador Markdown com configurações
 			const md = new MarkdownIt({
@@ -238,8 +242,8 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			// Adicionar suporte para emojis se ativado
 			if (enableEmoji) {
-				// markdown-it-emoji seria necessário, mas por agora vamos apenas permitir emojis Unicode
-				// Emojis Unicode já funcionam nativamente
+				// Usar markdown-it-emoji para renderizar emojis :smile:, :heart:, etc.
+				md.use(emoji);
 			}
 			
 			const encoder = new TextEncoder();
@@ -271,23 +275,51 @@ export function activate(context: vscode.ExtensionContext) {
 			let tempFile: vscode.Uri | undefined;
 			let useDataUri = false;
 			
-			// Estratégia 1: Criar ficheiro HTML temporário na pasta .vscode do workspace
-			// Isto permite que o browser recarregue o ficheiro e veja atualizações
-			const workspaceFolders = vscode.workspace.workspaceFolders;
-			if (workspaceFolders && workspaceFolders.length > 0) {
-				// Criar ficheiro no primeiro workspace
-				const workspaceFolder = workspaceFolders[0];
-				// Nome único baseado em timestamp para evitar conflitos
-				tempFile = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', `preview-${Date.now()}.html`);
-				
-				// Criar diretório .vscode se não existir
-				const vscodeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode');
-				try {
-					await vscode.workspace.fs.createDirectory(vscodeDir);
-				} catch (error) {
-					// Diretório já existe ou erro - continuar de qualquer forma
+			// Estratégia 1: Criar ficheiro HTML temporário no storage da extensão (fora do workspace)
+			// Isto evita poluir o workspace com ficheiros temporários
+			try {
+				// Usar storageUri da extensão (fora do workspace)
+				const storageUri = context.storageUri || context.globalStorageUri;
+				if (storageUri) {
+					// Criar diretório de previews se não existir
+					const previewDir = vscode.Uri.joinPath(storageUri, 'previews');
+					try {
+						await vscode.workspace.fs.createDirectory(previewDir);
+					} catch (error) {
+						// Diretório já existe ou erro - continuar de qualquer forma
+					}
+					// Nome único baseado em timestamp para evitar conflitos
+					tempFile = vscode.Uri.joinPath(previewDir, `preview-${Date.now()}.html`);
+				} else {
+					// Fallback: usar workspace se storageUri não estiver disponível
+					const workspaceFolders = vscode.workspace.workspaceFolders;
+					if (workspaceFolders && workspaceFolders.length > 0) {
+						const workspaceFolder = workspaceFolders[0];
+						tempFile = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', `preview-${Date.now()}.html`);
+						const vscodeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode');
+						try {
+							await vscode.workspace.fs.createDirectory(vscodeDir);
+						} catch (error) {
+							// Diretório já existe ou erro - continuar de qualquer forma
+						}
+					}
 				}
-			} else {
+			} catch (error) {
+				// Se falhar, tentar usar workspace como fallback
+				const workspaceFolders = vscode.workspace.workspaceFolders;
+				if (workspaceFolders && workspaceFolders.length > 0) {
+					const workspaceFolder = workspaceFolders[0];
+					tempFile = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode', `preview-${Date.now()}.html`);
+					const vscodeDir = vscode.Uri.joinPath(workspaceFolder.uri, '.vscode');
+					try {
+						await vscode.workspace.fs.createDirectory(vscodeDir);
+					} catch (err) {
+						// Ignorar erros
+					}
+				}
+			}
+			
+			if (!tempFile) {
 				// Estratégia 2: Usar data URI para ficheiros pequenos quando não há workspace aberto
 				// Data URIs têm limitações de tamanho (~2MB) e não suportam auto-atualizações bem
 				if (content.length < 2 * 1024 * 1024) {
@@ -501,75 +533,17 @@ export function activate(context: vscode.ExtensionContext) {
 			
 			// Adicionar suporte para emojis se ativado
 			if (enableEmoji) {
-				// Adicionar suporte básico para emojis :smile: etc
-				md.core.ruler.push('emoji', (state) => {
-					const emojiMap: { [key: string]: string } = {
-						':smile:': '😄',
-						':heart:': '❤️',
-						':thumbsup:': '👍',
-						':thumbsdown:': '👎',
-						':fire:': '🔥',
-						':rocket:': '🚀',
-						':star:': '⭐',
-						':warning:': '⚠️',
-						':check:': '✅',
-						':x:': '❌',
-						':+1:': '👍',
-						':-1:': '👎',
-						':100:': '💯',
-						':ok_hand:': '👌',
-						':clap:': '👏',
-						':tada:': '🎉',
-						':sparkles:': '✨',
-					};
-					
-					for (let i = 0; i < state.tokens.length; i++) {
-						const token = state.tokens[i];
-						if (token.type === 'inline' && token.children) {
-							for (let j = 0; j < token.children.length; j++) {
-								const child = token.children[j];
-								if (child.type === 'text') {
-									let content = child.content;
-									for (const [key, value] of Object.entries(emojiMap)) {
-										content = content.replace(new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), value);
-									}
-									child.content = content;
-								}
-							}
-						}
-					}
-				});
+				// Usar markdown-it-emoji para renderizar emojis :smile:, :heart:, etc.
+				md.use(emoji);
 			}
 
 			// Extrair nome do ficheiro para o título do painel (ex: "README.md Preview")
 			const fileName = document.fileName.split(/[/\\]/).pop() || 'README.md';
 			
-			// Determinar coluna de visualização baseada nas configurações
-			// Carregar previewPosition novamente aqui para garantir que está correto
-			const previewPosition = config.get<string>('previewPosition', 'beside');
-			let previewViewColumn: vscode.ViewColumn;
-			
-			if (protectPreviewColumn) {
-				// Se proteção ativada, sempre usar coluna 2
-				previewViewColumn = vscode.ViewColumn.Two;
-			} else {
-				// Caso contrário, usar a configuração previewPosition
-				switch (previewPosition) {
-					case 'right':
-						previewViewColumn = vscode.ViewColumn.Two;
-						break;
-					case 'below':
-						previewViewColumn = vscode.ViewColumn.Three; // Abaixo (coluna 3)
-						break;
-					case 'active':
-						previewViewColumn = vscode.ViewColumn.Active;
-						break;
-					case 'beside':
-					default:
-						previewViewColumn = vscode.ViewColumn.Beside;
-						break;
-				}
-			}
+			// Determinar coluna de visualização baseada na configuração protectPreviewColumn
+			// Se proteção ativada, usar coluna 2 (coluna dedicada para previews)
+			// Caso contrário, abrir ao lado do editor (VS Code decide a melhor posição)
+			const previewViewColumn = protectPreviewColumn ? vscode.ViewColumn.Two : vscode.ViewColumn.Beside;
 			
 			// Criar painel webview para a preview
 			const panel = vscode.window.createWebviewPanel(
@@ -655,9 +629,11 @@ export function activate(context: vscode.ExtensionContext) {
 				);
 
 				// Verificar se a configuração openInBrowser está ativa para mostrar o botão Web
-				const config = vscode.workspace.getConfiguration('github-readme-viewer');
-				const openInBrowser = config.get<boolean>('openInBrowser', false);
-				const maxWidth = config.get<number | string>('maxWidth', 980);
+				const currentConfig = vscode.workspace.getConfiguration('github-readme-viewer');
+				const openInBrowser = currentConfig.get<boolean>('openInBrowser', false);
+				const maxWidthConfig = currentConfig.get<number | string>('maxWidth', 980);
+				// Garantir que maxWidth nunca seja 0, usar 980 como padrão
+				const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 				
 				// Gerar e definir conteúdo HTML para o webview
 				panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode, openInBrowser, maxWidth);
@@ -1025,18 +1001,36 @@ export function activate(context: vscode.ExtensionContext) {
 				const currentDocUri = editor.document.uri.toString();
 				const isPreviewDocument = Array.from(activePanels.keys()).some(uri => uri === currentDocUri);
 				
+				// Se for um ficheiro markdown suportado na coluna 2, fechar o editor da coluna 2
+				// e mover para a coluna 1 (a preview já está na coluna 2)
+				if (isFileSupported(editor.document)) {
+					isProtecting = true;
+					try {
+						// Fechar o editor atual da coluna 2
+						await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+						
+						// Mover ficheiro para a coluna 1 (coluna 2 protegida é apenas para previews)
+						await vscode.window.showTextDocument(editor.document, {
+							viewColumn: vscode.ViewColumn.One,
+							preview: false
+						});
+					} catch (error) {
+						// Ignorar erros silenciosamente
+					} finally {
+						// Resetar flag de proteção após um pequeno delay
+						if (protectTimeout) {
+							clearTimeout(protectTimeout);
+						}
+						protectTimeout = setTimeout(() => {
+							isProtecting = false;
+						}, 300);
+					}
+					return;
+				}
+				
 				if (!isPreviewDocument) {
 					isProtecting = true;
 					try {
-						// Se for um ficheiro markdown suportado, fechar qualquer preview que possa estar aberta
-						// (previne conflitos ao abrir ficheiros markdown na coluna protegida)
-						if (isFileSupported(editor.document)) {
-							const previewPanel = activePanels.get(currentDocUri);
-							if (previewPanel) {
-								previewPanel.dispose();
-							}
-						}
-						
 						// Mover ficheiro para a coluna 1 (coluna 2 protegida é apenas para previews)
 						await vscode.window.showTextDocument(editor.document, {
 							viewColumn: vscode.ViewColumn.One,
