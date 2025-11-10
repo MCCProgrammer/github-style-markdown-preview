@@ -132,12 +132,13 @@ Para aceder às configurações:
 #### `github-readme-viewer.openInBrowser`
 - **Tipo**: `boolean`
 - **Padrão**: `false`
-- **Descrição**: Abre a preview no navegador externo em vez do painel do VS Code. Quando ativado:
+- **Descrição**: Quando ativado, mostra um botão "🌐 Web" na preview do IDE. Ao clicar no botão:
   - A preview abre no seu navegador padrão
+  - A preview do IDE fecha automaticamente
   - Atualiza automaticamente quando edita o ficheiro (usando o `updateDelay` configurado)
-  - Suporta toggle de tema (dark/light mode)
-  - Usa auto-refresh para manter a preview atualizada
-- **Recomendação**: Ative se preferir ver a preview no navegador ou se quiser uma experiência mais próxima do GitHub
+  - Usa um ficheiro HTML temporário na pasta `.vscode` do workspace
+  - O ficheiro é apagado automaticamente quando o documento é fechado
+- **Recomendação**: Ative se quiser ter a opção de abrir a preview no navegador a partir da preview do IDE
 
 **Exemplo:**
 ```json
@@ -146,38 +147,43 @@ Para aceder às configurações:
 }
 ```
 
-**Nota**: Quando `openInBrowser` está ativo, a preview é servida através de um ficheiro HTML temporário que é atualizado automaticamente. O ficheiro é apagado quando o documento é fechado.
-
-#### `github-readme-viewer.browserPort`
-- **Tipo**: `number`
-- **Padrão**: `8080`
-- **Descrição**: Porta para o servidor HTTP local quando `openInBrowser` está ativo (não usado atualmente, reservado para futuras melhorias)
-- **Recomendação**: Deixe o valor padrão a menos que tenha conflitos de porta
-
-**Exemplo:**
-```json
-{
-  "github-readme-viewer.browserPort": 8080
-}
-```
+**Nota**: 
+- Esta configuração apenas mostra o botão "Web" na preview do IDE
+- Para abrir no browser, é necessário clicar no botão "🌐 Web" que aparece no canto superior direito da preview
+- Quando a preview é aberta no browser, ela é servida através de um ficheiro HTML temporário que é atualizado automaticamente
+- Se não houver workspace aberto, ficheiros pequenos (< 2MB) podem usar data URI (funcionalidade limitada)
 
 ## 🎨 Funcionalidades
 
 ### ✅ Atualização Automática
 - A preview atualiza automaticamente quando edita o ficheiro Markdown
 - O delay é configurável através da opção `updateDelay`
+- Atualização imediata quando guarda o ficheiro (Ctrl+S)
+- Debouncing configurável para evitar atualizações excessivas durante a escrita
 
 ### ✅ Preferências Guardadas
 - A preferência de tema (dark/light) é guardada por ficheiro
 - Quando reabre um ficheiro, a preview usa o último tema escolhido
+- Preferências persistem entre sessões do VS Code
+- Cada ficheiro tem a sua própria preferência de tema
 
 ### ✅ Suporte para Múltiplos Ficheiros
 - Pode ter várias previews abertas ao mesmo tempo (uma por ficheiro)
 - Cada preview mantém as suas próprias preferências
+- Prevenção de duplicados (não abre múltiplas previews para o mesmo ficheiro)
 
 ### ✅ Integração com VS Code
 - A preview adapta-se ao tema do VS Code (se não tiver preferência guardada)
 - Usa as cores do VS Code para melhor integração visual
+- Foco automático no editor após abrir a preview
+- Fecha automaticamente quando o ficheiro é fechado
+
+### ✅ Preview no Browser
+- Opção para abrir preview no navegador externo (via botão "Web" na preview do IDE)
+- Atualização automática no browser quando edita o ficheiro
+- Ficheiro HTML temporário criado na pasta `.vscode` do workspace
+- Limpeza automática quando o ficheiro é fechado
+- **Nota**: O browser preview não tem botão de toggle dark/light mode - o tema é definido no momento da abertura baseado na preferência guardada
 
 ## 📝 Exemplos de Uso
 
@@ -226,10 +232,13 @@ Para aceder às configurações:
 2. Procure "Open In Browser"
 3. Ative a opção
 4. Abra um ficheiro `.md` e use `Alt+R` ou clique no botão "Open README Preview"
-5. A preview abre no seu navegador padrão
-6. Edite o ficheiro e veja a preview atualizar automaticamente no navegador
-7. Use o botão no canto superior direito para alternar entre dark e light mode
-8. A preview fecha automaticamente quando fecha o ficheiro no VS Code
+5. A preview abre no painel do IDE com um botão "🌐 Web" visível
+6. Clique no botão "🌐 Web" no canto superior direito da preview
+7. A preview abre no seu navegador padrão e a preview do IDE fecha automaticamente
+8. Edite o ficheiro e veja a preview atualizar automaticamente no navegador
+9. A preview fecha automaticamente quando fecha o ficheiro no VS Code
+
+**Nota**: O botão "Web" só aparece na preview do IDE quando `openInBrowser` está ativado. A preview não abre diretamente no browser quando a configuração está ativa - é necessário clicar no botão.
 
 ## 🔧 Resolução de Problemas
 
@@ -253,6 +262,13 @@ Para aceder às configurações:
 - Verifique se `autoOpen` está ativado nas configurações
 - Certifique-se de que o ficheiro corresponde aos padrões em `supportedFiles`
 - Se fechou a preview manualmente, ela não reabre automaticamente até abrir o ficheiro novamente
+
+### Preview no browser não funciona
+- Certifique-se de que tem um workspace aberto (necessário para criar o ficheiro HTML temporário)
+- Se não houver workspace, apenas ficheiros pequenos (< 2MB) podem funcionar com data URI
+- Verifique se a configuração `openInBrowser` está ativada para mostrar o botão "Web"
+- Lembre-se que é necessário clicar no botão "🌐 Web" na preview do IDE para abrir no browser
+- A preview não abre diretamente no browser - primeiro abre no IDE, depois clique no botão "Web"
 
 ## 💡 Dicas
 

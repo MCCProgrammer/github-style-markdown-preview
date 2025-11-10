@@ -88,13 +88,6 @@
           "type": "boolean",
           "default": false,
           "description": "Open preview in external browser instead of VS Code webview panel. The preview will update automatically as you edit the file."
-        },
-        "github-readme-viewer.browserPort": {
-          "type": "number",
-          "default": 8080,
-          "description": "Port number for the local HTTP server when opening preview in browser",
-          "minimum": 1024,
-          "maximum": 65535
         }
       }
     }

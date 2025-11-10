@@ -1,65 +1,154 @@
-# github-readme-viewer README
+# GitHub README Viewer
 
-This is the README for your extension "github-readme-viewer". After writing up a brief description, we recommend including the following sections.
+Uma extensão para Visual Studio Code que permite visualizar ficheiros Markdown no estilo GitHub, com suporte para temas dark e light, atualização automática em tempo real e várias opções de personalização.
 
-## Features
+## ✨ Funcionalidades
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🎨 **Preview Estilo GitHub**: Visualize ficheiros Markdown com o estilo GitHub oficial
+- 🌓 **Temas Dark/Light**: Alterna entre temas dark e light com um clique
+- 🔄 **Atualização Automática**: A preview atualiza automaticamente enquanto edita o ficheiro
+- 💾 **Preferências por Ficheiro**: Cada ficheiro guarda a sua preferência de tema
+- 🚀 **Auto-Open**: Abre a preview automaticamente quando abre um ficheiro Markdown
+- 🖥️ **Preview no Browser**: Opção para abrir a preview no navegador externo
+- 📁 **Múltiplos Ficheiros**: Suporta várias previews abertas simultaneamente
+- 🎯 **Proteção de Coluna**: Mantém a preview numa coluna dedicada
 
-For example if there is an image subfolder under your extension project workspace:
+## 🚀 Instalação
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Abra o VS Code
+2. Vá para a secção de Extensões (`Ctrl+Shift+X` ou `Cmd+Shift+X`)
+3. Procure por "GitHub README Viewer"
+4. Clique em "Install"
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## 📖 Como Usar
 
-## Requirements
+### Abrir a Preview
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Existem três formas de abrir a preview:
 
-## Extension Settings
+1. **Botão no Editor**: Clique no botão "Open README Preview" na barra de título do editor
+2. **Atalho de Teclado**: Pressione `Alt+R` (Windows/Linux) ou `Opt+R` (Mac)
+3. **Command Palette**: Pressione `F1` ou `Ctrl+Shift+P` e digite "Open README Preview"
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Alternar Tema
 
-For example:
+1. **Botão na Preview**: Clique no botão 🌙/☀️ no canto superior direito
+2. **Atalho de Teclado**: Pressione `Ctrl+Shift+T` (Windows/Linux) ou `Cmd+Shift+T` (Mac)
+3. **Command Palette**: Digite "Toggle Preview Theme"
 
-This extension contributes the following settings:
+## ⚙️ Configurações
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+A extensão suporta as seguintes configurações:
 
-## Known Issues
+### `github-readme-viewer.autoOpen`
+Abre automaticamente a preview quando um ficheiro Markdown é aberto.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+**Padrão**: `false`
 
-## Release Notes
+```json
+{
+  "github-readme-viewer.autoOpen": true
+}
+```
 
-Users appreciate release notes as you update your extension.
+### `github-readme-viewer.updateDelay`
+Delay em milissegundos antes de atualizar a preview após editar (debouncing).
 
-### 1.0.0
+**Padrão**: `300`
 
-Initial release of ...
+```json
+{
+  "github-readme-viewer.updateDelay": 500
+}
+```
 
-### 1.0.1
+### `github-readme-viewer.supportedFiles`
+Padrões de ficheiros suportados (sintaxe glob).
 
-Fixed issue #.
+**Padrão**: `["*.md"]`
 
-### 1.1.0
+```json
+{
+  "github-readme-viewer.supportedFiles": [
+    "*.md",
+    "*.markdown",
+    "README*"
+  ]
+}
+```
 
-Added features X, Y, and Z.
+### `github-readme-viewer.protectPreviewColumn`
+Protege a coluna da preview (coluna 2) de outros ficheiros.
+
+**Padrão**: `false`
+
+```json
+{
+  "github-readme-viewer.protectPreviewColumn": true
+}
+```
+
+### `github-readme-viewer.openInBrowser`
+Mostra um botão "Web" na preview do IDE para abrir no navegador externo.
+
+**Padrão**: `false`
+
+```json
+{
+  "github-readme-viewer.openInBrowser": true
+}
+```
+
+**Nota**: 
+- Quando ativado, aparece um botão "🌐 Web" na preview do IDE
+- Ao clicar no botão, abre a preview no navegador e fecha a preview do IDE
+- O browser preview usa o tema preferido guardado (não tem botão de toggle dark/light mode)
+- Requer um workspace aberto para funcionar corretamente (cria ficheiro HTML temporário na pasta `.vscode`)
+
+## 🎯 Atalhos de Teclado
+
+| Atalho | Ação |
+|--------|------|
+| `Alt+R` / `Opt+R` | Abrir preview |
+| `Ctrl+Shift+T` / `Cmd+Shift+T` | Alternar tema (dark/light) |
+
+## 📚 Documentação
+
+Para mais informações detalhadas, consulte o [Guia de Uso](USAGE.md).
+
+## 🔧 Requisitos
+
+- Visual Studio Code 1.85.0 ou superior
+
+## 🐛 Problemas Conhecidos
+
+Nenhum problema conhecido no momento.
+
+## 📝 Notas de Lançamento
+
+### 0.0.1
+- Lançamento inicial
+- Preview estilo GitHub
+- Suporte para temas dark e light
+- Atualização automática
+- Preferências por ficheiro
+- Auto-open opcional
+- Preview no browser
+- Proteção de coluna
+
+## 🤝 Contribuições
+
+Contribuições são bem-vindas! Por favor, abra uma issue ou pull request no repositório.
+
+## 📄 Licença
+
+Este projeto está sob licença MIT.
+
+## 🙏 Agradecimentos
+
+- [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css) pelo estilo CSS
+- [markdown-it](https://github.com/markdown-it/markdown-it) pelo renderizador Markdown
 
 ---
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Desfrute da extensão GitHub README Viewer!** 🎉
