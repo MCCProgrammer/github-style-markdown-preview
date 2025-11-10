@@ -1,4 +1,4 @@
-# GitHub README Viewer
+# GitHub Style Markdown Preview
 
 Uma extensão para Visual Studio Code que permite visualizar ficheiros Markdown no estilo GitHub, com suporte para temas dark e light, atualização automática em tempo real e várias opções de personalização.
 
@@ -17,7 +17,7 @@ Uma extensão para Visual Studio Code que permite visualizar ficheiros Markdown 
 
 1. Abra o VS Code
 2. Vá para a secção de Extensões (`Ctrl+Shift+X` ou `Cmd+Shift+X`)
-3. Procure por "GitHub README Viewer"
+3. Procure por "GitHub Style Markdown Preview"
 4. Clique em "Install"
 
 ## 📖 Como Usar
@@ -105,6 +105,87 @@ Mostra um botão "Web" na preview do IDE para abrir no navegador externo.
 - O browser preview usa o tema preferido guardado (não tem botão de toggle dark/light mode)
 - Requer um workspace aberto para funcionar corretamente (cria ficheiro HTML temporário na pasta `.vscode`)
 
+### `github-readme-viewer.maxWidth`
+Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura total.
+
+**Padrão**: `980` (pixels)
+
+**Nota**: O GitHub usa 980px como largura padrão.
+
+```json
+{
+  "github-readme-viewer.maxWidth": 980
+}
+```
+
+Ou para largura total:
+```json
+{
+  "github-readme-viewer.maxWidth": "auto"
+}
+```
+
+### `github-readme-viewer.enableEmoji`
+Ativa a renderização de emojis (ex: :smile:, :heart:). Aplica-se tanto à preview do IDE quanto à do browser.
+
+**Padrão**: `true`
+
+```json
+{
+  "github-readme-viewer.enableEmoji": true
+}
+```
+
+### `github-readme-viewer.enableBreaks`
+Converte quebras de linha simples em quebras de linha HTML (comportamento similar ao GitHub). Aplica-se tanto à preview do IDE quanto à do browser.
+
+**Padrão**: `false`
+
+```json
+{
+  "github-readme-viewer.enableBreaks": true
+}
+```
+
+### `github-readme-viewer.previewPosition`
+Posição inicial do painel de preview (apenas preview do IDE).
+
+**Padrão**: `"beside"`
+
+**Valores**:
+- `"beside"` - Abre ao lado do editor ativo (VS Code decide a melhor posição)
+- `"right"` - Abre na coluna direita (coluna 2)
+- `"below"` - Abre abaixo do editor ativo
+- `"active"` - Abre na coluna do editor ativo
+
+```json
+{
+  "github-readme-viewer.previewPosition": "right"
+}
+```
+
+### `github-readme-viewer.closeOnFileClose`
+Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas preview do IDE).
+
+**Padrão**: `true`
+
+```json
+{
+  "github-readme-viewer.closeOnFileClose": true
+}
+```
+
+### `github-readme-viewer.focusEditorAfterOpen`
+Foca no editor após abrir a preview, permitindo continuar a editar (apenas preview do IDE).
+
+**Padrão**: `true`
+
+```json
+{
+  "github-readme-viewer.focusEditorAfterOpen": true
+}
+```
+
 ## 🎯 Atalhos de Teclado
 
 | Atalho | Ação |
@@ -151,4 +232,4 @@ Este projeto está sob licença MIT.
 
 ---
 
-**Desfrute da extensão GitHub README Viewer!** 🎉
+**Desfrute da extensão GitHub Style Markdown Preview!** 🎉

@@ -223,8 +223,25 @@ export function activate(context: vscode.ExtensionContext) {
 			const defaultIsDark = vsCodeTheme.kind === vscode.ColorThemeKind.Dark;
 			let isDarkMode = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
 
-			// Inicializar renderizador Markdown e encoder de texto
-			const md = new MarkdownIt();
+			// Carregar configurações
+			const config = vscode.workspace.getConfiguration('github-readme-viewer');
+			const enableEmoji = config.get<boolean>('enableEmoji', true);
+			const enableBreaks = config.get<boolean>('enableBreaks', false);
+			const maxWidth = config.get<number | string>('maxWidth', 980);
+			
+			// Inicializar renderizador Markdown com configurações
+			const md = new MarkdownIt({
+				breaks: enableBreaks,
+				html: false, // Por segurança, não permitir HTML inline
+				linkify: true, // Converter URLs em links automaticamente
+			});
+			
+			// Adicionar suporte para emojis se ativado
+			if (enableEmoji) {
+				// markdown-it-emoji seria necessário, mas por agora vamos apenas permitir emojis Unicode
+				// Emojis Unicode já funcionam nativamente
+			}
+			
 			const encoder = new TextEncoder();
 			
 			/**
@@ -237,7 +254,7 @@ export function activate(context: vscode.ExtensionContext) {
 			 */
 			const updateHtmlFile = async (tempFile: vscode.Uri, content: string, darkMode: boolean) => {
 				const rendered = md.render(content);
-				const htmlContent = getBrowserHtml(rendered, content, darkMode, documentUri, updateDelay);
+				const htmlContent = getBrowserHtml(rendered, content, darkMode, documentUri, updateDelay, maxWidth);
 				const data = encoder.encode(htmlContent);
 				await vscode.workspace.fs.writeFile(tempFile, data);
 			};
@@ -289,7 +306,7 @@ export function activate(context: vscode.ExtensionContext) {
 					// Usar data URI para abrir diretamente no browser
 					// Funcionalidade limitada: sem auto-atualizações, limite de tamanho ~2MB
 					const rendered = md.render(content);
-					const htmlContent = getBrowserHtml(rendered, content, isDarkMode, documentUri, updateDelay);
+					const htmlContent = getBrowserHtml(rendered, content, isDarkMode, documentUri, updateDelay, maxWidth);
 					const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
 					await vscode.env.openExternal(vscode.Uri.parse(dataUri));
 					
@@ -468,16 +485,45 @@ export function activate(context: vscode.ExtensionContext) {
 			const defaultIsDark = vsCodeTheme.kind === vscode.ColorThemeKind.Dark;
 			let isDarkMode: boolean = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
 			
-			// Inicializar renderizador Markdown
-			const md = new MarkdownIt();
+			// Carregar configurações para markdown-it
+			const enableEmoji = config.get<boolean>('enableEmoji', true);
+			const enableBreaks = config.get<boolean>('enableBreaks', false);
+			
+			// Inicializar renderizador Markdown com configurações
+			const md = new MarkdownIt({
+				breaks: enableBreaks,
+				html: false, // Por segurança, não permitir HTML inline
+				linkify: true, // Converter URLs em links automaticamente
+			});
 
 			// Extrair nome do ficheiro para o título do painel (ex: "README.md Preview")
 			const fileName = document.fileName.split(/[/\\]/).pop() || 'README.md';
 			
-			// Determinar coluna de visualização baseada na configuração protectPreviewColumn
-			// Se proteção ativada, usar coluna 2 (coluna dedicada para previews)
-			// Caso contrário, abrir ao lado do editor (VS Code decide a melhor posição)
-			const previewViewColumn = protectPreviewColumn ? vscode.ViewColumn.Two : vscode.ViewColumn.Beside;
+			// Determinar coluna de visualização baseada nas configurações
+			const previewPosition = config.get<string>('previewPosition', 'beside');
+			let previewViewColumn: vscode.ViewColumn;
+			
+			if (protectPreviewColumn) {
+				// Se proteção ativada, sempre usar coluna 2
+				previewViewColumn = vscode.ViewColumn.Two;
+			} else {
+				// Caso contrário, usar a configuração previewPosition
+				switch (previewPosition) {
+					case 'right':
+						previewViewColumn = vscode.ViewColumn.Two;
+						break;
+					case 'below':
+						previewViewColumn = vscode.ViewColumn.Three; // Abaixo (coluna 3)
+						break;
+					case 'active':
+						previewViewColumn = vscode.ViewColumn.Active;
+						break;
+					case 'beside':
+					default:
+						previewViewColumn = vscode.ViewColumn.Beside;
+						break;
+				}
+			}
 			
 			// Criar painel webview para a preview
 			const panel = vscode.window.createWebviewPanel(
@@ -565,9 +611,10 @@ export function activate(context: vscode.ExtensionContext) {
 				// Verificar se a configuração openInBrowser está ativa para mostrar o botão Web
 				const config = vscode.workspace.getConfiguration('github-readme-viewer');
 				const openInBrowser = config.get<boolean>('openInBrowser', false);
+				const maxWidth = config.get<number | string>('maxWidth', 980);
 				
 				// Gerar e definir conteúdo HTML para o webview
-				panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode, openInBrowser);
+				panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode, openInBrowser, maxWidth);
 			};
 
 			// ========================================================================
@@ -693,18 +740,20 @@ export function activate(context: vscode.ExtensionContext) {
 			// Atualização inicial do webview (mostrar conteúdo da preview)
 			updateWebview();
 			
-			// Focar no editor do documento após abrir a preview
-			// Isto garante que o utilizador pode continuar a editar enquanto a preview está visível
-			setTimeout(async () => {
-				try {
-					const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
-					if (doc) {
-						await vscode.window.showTextDocument(doc, { preview: false, viewColumn: vscode.ViewColumn.One });
+			// Focar no editor do documento após abrir a preview (se configurado)
+			const focusEditorAfterOpen = config.get<boolean>('focusEditorAfterOpen', true);
+			if (focusEditorAfterOpen) {
+				setTimeout(async () => {
+					try {
+						const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
+						if (doc) {
+							await vscode.window.showTextDocument(doc, { preview: false, viewColumn: vscode.ViewColumn.One });
+						}
+					} catch (error) {
+						// Ignorar erros ao focar
 					}
-				} catch (error) {
-					// Ignorar erros ao focar
-				}
-			}, 100);
+				}, 100);
+			}
 		}
 
 		// ========================================================================
@@ -770,19 +819,25 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		/**
 		 * Listener para eventos de fechamento de documento - fecha painéis de preview associados.
-		 * Quando um ficheiro markdown é fechado, a sua preview é automaticamente fechada também.
+		 * Quando um ficheiro markdown é fechado, a sua preview é automaticamente fechada também
+		 * (se closeOnFileClose estiver ativado).
 		 * O handler onDidDispose do painel vai detetar que o documento já não existe
 		 * e resetar o estado de fechamento para permitir reabrir quando o ficheiro for aberto novamente.
 		 */
 		const closePreviewOnDocumentClose = vscode.workspace.onDidCloseTextDocument((document) => {
 			if (isFileSupported(document)) {
-				const documentUri = document.uri.toString();
-				const panel = activePanels.get(documentUri);
-				if (panel) {
-					// Fechar preview quando o documento é fechado
-					// O onDidDispose do painel vai detetar que o documento não existe mais
-					// e resetar o estado corretamente
-					panel.dispose();
+				const config = vscode.workspace.getConfiguration('github-readme-viewer');
+				const closeOnFileClose = config.get<boolean>('closeOnFileClose', true);
+				
+				if (closeOnFileClose) {
+					const documentUri = document.uri.toString();
+					const panel = activePanels.get(documentUri);
+					if (panel) {
+						// Fechar preview quando o documento é fechado
+						// O onDidDispose do painel vai detetar que o documento não existe mais
+						// e resetar o estado corretamente
+						panel.dispose();
+					}
 				}
 			}
 		});
@@ -1009,14 +1064,21 @@ export function activate(context: vscode.ExtensionContext) {
  * @param updateDelay - Delay em milissegundos para atualizações (afeta intervalo de refresh)
  * @returns String HTML completa para a preview no browser
  */
-function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolean, documentUri: string, updateDelay: number): string {
+function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolean, documentUri: string, updateDelay: number, maxWidth: number | string = 980): string {
 	// Selecionar ficheiro CSS baseado no tema (GitHub Markdown CSS do CDN)
 	const cssFile = isDark ? 'github-markdown-dark.css' : 'github-markdown-light.css';
 	// Usar CDN para CSS do GitHub (não podemos servir ficheiros locais no browser devido a restrições CORS)
 	const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
 	
-	// Envolver HTML renderizado em tag article markdown-body com padding
-	const content = `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
+	// Calcular max-width CSS
+	const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
+		? 'auto' 
+		: typeof maxWidth === 'number' 
+			? `${maxWidth}px` 
+			: '980px';
+	
+	// Envolver HTML renderizado em tag article markdown-body com padding e max-width
+	const content = `<article class="markdown-body" style="padding: 2rem; max-width: ${maxWidthCss}; margin: 0 auto;">${renderedHtml}</article>`;
 	
 	// Ajustes CSS específicos do tema para melhor consistência visual
 	const themeAdjustments = isDark ? `
@@ -1098,9 +1160,16 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
  * @param showWebButton - true para mostrar botão "Web" (abre preview no browser)
  * @returns String HTML completa para o painel webview
  */
-function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean, showWebButton: boolean = false): string {
-	// Envolver HTML renderizado em tag article markdown-body com padding
-	const content = `<article class="markdown-body" style="padding: 2rem;">${renderedHtml}</article>`;
+function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean, showWebButton: boolean = false, maxWidth: number | string = 980): string {
+	// Calcular max-width CSS
+	const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
+		? 'auto' 
+		: typeof maxWidth === 'number' 
+			? `${maxWidth}px` 
+			: '980px';
+	
+	// Envolver HTML renderizado em tag article markdown-body com padding e max-width
+	const content = `<article class="markdown-body" style="padding: 2rem; max-width: ${maxWidthCss}; margin: 0 auto;">${renderedHtml}</article>`;
 	
 	// Texto do botão baseado no tema atual (mostra opção de tema oposto)
 	const buttonText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';

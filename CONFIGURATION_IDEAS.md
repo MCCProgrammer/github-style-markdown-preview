@@ -1,4 +1,4 @@
-**GitHub Markdown Preview** ⭐ (Recomendado)
+**GitHub Style Markdown Preview** ⭐
 Para além disso quero dividir em geral que da para preview ide e web. e so web e so ide.
 Pode estar o grupo e depois tem se é de layout, ect.
 #### `github-readme-viewer.maxWidth`
@@ -175,3 +175,12 @@ Pode estar o grupo e depois tem se é de layout, ect.
 - **Sync Scroll**: Requer cálculo de posições e eventos de scroll
 
 
+#### `mudar a tecla do atalho ou hot key`
+- **Descrição**: Escolher qual tecla querem para abrir a preview
+- **Uso**: Controlar se previews são abertas no startup
+
+```json
+{
+  "github-readme-viewer.showPreviewOnStartup": true
+}
+```

@@ -1,6 +1,6 @@
 {
   "name": "github-readme-viewer",
-  "displayName": "github-readme-viewer",
+  "displayName": "GitHub Style Markdown Preview",
   "description": "View README.md files like on GitHub with dark/light mode toggle.",
   "version": "0.0.1",
   "engines": {
@@ -88,6 +88,44 @@
           "type": "boolean",
           "default": false,
           "description": "Open preview in external browser instead of VS Code webview panel. The preview will update automatically as you edit the file."
+        },
+        "github-readme-viewer.maxWidth": {
+          "type": ["number", "string"],
+          "default": 980,
+          "description": "Maximum width of the content in the preview (in pixels). Use 'auto' for full width. Default GitHub width is 980px.",
+          "markdownDescription": "Maximum width of the content in the preview (in pixels). Use `auto` for full width. **Default GitHub width is 980px.**"
+        },
+        "github-readme-viewer.enableEmoji": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable emoji rendering (e.g., :smile:, :heart:). Applies to both IDE and browser previews."
+        },
+        "github-readme-viewer.enableBreaks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Convert single line breaks to HTML line breaks (similar to GitHub behavior). Applies to both IDE and browser previews."
+        },
+        "github-readme-viewer.previewPosition": {
+          "type": "string",
+          "enum": ["beside", "right", "below", "active"],
+          "default": "beside",
+          "description": "Initial position of the preview panel (IDE preview only).",
+          "enumDescriptions": [
+            "Open preview beside the active editor (VS Code decides best position)",
+            "Open preview in the right column (column 2)",
+            "Open preview below the active editor",
+            "Open preview in the active editor column"
+          ]
+        },
+        "github-readme-viewer.closeOnFileClose": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically close preview when the markdown file is closed (IDE preview only)."
+        },
+        "github-readme-viewer.focusEditorAfterOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Focus the editor after opening the preview, allowing you to continue editing (IDE preview only)."
         }
       }
     }

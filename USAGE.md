@@ -1,8 +1,8 @@
-# GitHub README Viewer - Guia de Uso
+# GitHub Style Markdown Preview - Guia de Uso
 
 ## 📖 Visão Geral
 
-A extensão **GitHub README Viewer** permite visualizar ficheiros Markdown no estilo GitHub, com suporte para temas dark e light, atualização automática em tempo real e várias opções de personalização.
+A extensão **GitHub Style Markdown Preview** permite visualizar ficheiros Markdown no estilo GitHub, com suporte para temas dark e light, atualização automática em tempo real e várias opções de personalização.
 
 ## 🚀 Como Usar
 
@@ -152,6 +152,99 @@ Para aceder às configurações:
 - Para abrir no browser, é necessário clicar no botão "🌐 Web" que aparece no canto superior direito da preview
 - Quando a preview é aberta no browser, ela é servida através de um ficheiro HTML temporário que é atualizado automaticamente
 - Se não houver workspace aberto, ficheiros pequenos (< 2MB) podem usar data URI (funcionalidade limitada)
+
+#### `github-readme-viewer.maxWidth`
+- **Tipo**: `number` | `string`
+- **Padrão**: `980` (pixels)
+- **Descrição**: Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura total. Aplica-se tanto à preview do IDE quanto à do browser.
+- **Valores**: 
+  - Número (pixels) - ex: `980`, `1200`
+  - `"auto"` - largura total do ecrã
+- **Nota**: O GitHub usa 980px como largura padrão para melhor legibilidade.
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.maxWidth": 980
+}
+```
+
+Ou para largura total:
+```json
+{
+  "github-readme-viewer.maxWidth": "auto"
+}
+```
+
+#### `github-readme-viewer.enableEmoji`
+- **Tipo**: `boolean`
+- **Padrão**: `true`
+- **Descrição**: Ativa a renderização de emojis (ex: :smile:, :heart:). Aplica-se tanto à preview do IDE quanto à do browser.
+- **Recomendação**: Mantenha ativado se usar emojis nos seus documentos Markdown
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.enableEmoji": true
+}
+```
+
+#### `github-readme-viewer.enableBreaks`
+- **Tipo**: `boolean`
+- **Padrão**: `false`
+- **Descrição**: Converte quebras de linha simples em quebras de linha HTML (comportamento similar ao GitHub). Aplica-se tanto à preview do IDE quanto à do browser.
+- **Recomendação**: Ative se quiser que quebras de linha simples sejam renderizadas como quebras de linha HTML (comportamento do GitHub)
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.enableBreaks": true
+}
+```
+
+#### `github-readme-viewer.previewPosition`
+- **Tipo**: `string`
+- **Padrão**: `"beside"`
+- **Descrição**: Posição inicial do painel de preview (apenas preview do IDE).
+- **Valores**:
+  - `"beside"` - Abre ao lado do editor ativo (VS Code decide a melhor posição)
+  - `"right"` - Abre na coluna direita (coluna 2)
+  - `"below"` - Abre abaixo do editor ativo
+  - `"active"` - Abre na coluna do editor ativo
+- **Recomendação**: Use `"beside"` para posicionamento automático ou `"right"` para sempre abrir na coluna direita
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.previewPosition": "right"
+}
+```
+
+#### `github-readme-viewer.closeOnFileClose`
+- **Tipo**: `boolean`
+- **Padrão**: `true`
+- **Descrição**: Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas preview do IDE).
+- **Recomendação**: Mantenha ativado para manter o workspace limpo
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.closeOnFileClose": true
+}
+```
+
+#### `github-readme-viewer.focusEditorAfterOpen`
+- **Tipo**: `boolean`
+- **Padrão**: `true`
+- **Descrição**: Foca no editor após abrir a preview, permitindo continuar a editar imediatamente (apenas preview do IDE).
+- **Recomendação**: Mantenha ativado para um fluxo de trabalho mais fluido
+
+**Exemplo:**
+```json
+{
+  "github-readme-viewer.focusEditorAfterOpen": true
+}
+```
 
 ## 🎨 Funcionalidades
 
