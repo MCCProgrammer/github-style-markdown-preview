@@ -49,7 +49,7 @@
         "command": "github-style-markdown-preview.openMarkDown",
         "key": "ctrl+alt+p",
         "mac": "cmd+opt+p",
-        "when": "editorTextFocus && editorLangId == markdown"
+        "when": "editorTextFocus"
       },
       {
         "command": "github-style-markdown-preview.toggleTheme",
