@@ -4,7 +4,14 @@ All notable changes to the "GitHub Style Markdown Preview" extension will be doc
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [0.0.3] - 2025-11-10
+## [0.0.4] - 2025-11-11
+
+### Fixed
+- 📦 Fixed package distribution: Updated `.vscodeignore` to include necessary CSS files from `github-markdown-css` package
+  - CSS files are now correctly included in the published extension package
+  - Ensures preview styling works correctly for all users after installation
+
+## [0.0.3] - 2025-11-11
 
 ### Changed
 - ⌨️ Default keyboard shortcut changed from `Alt+R` to `Ctrl+Alt+P` (Windows/Linux) or `Cmd+Opt+P` (Mac)
