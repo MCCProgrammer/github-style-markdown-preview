@@ -100,25 +100,82 @@ function isPreviewClosed(context: vscode.ExtensionContext, document: vscode.Text
 function isFileSupported(document: vscode.TextDocument): boolean {
 	const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 	const supportedPatterns = config.get<string[]>('supportedFiles', ['*.md']);
-	const fileName = document.fileName;
 	
-	// Primeiro verificar: o documento deve ser do tipo markdown
-	if (document.languageId !== 'markdown') {
-		return false;
+	// Extrair apenas o nome do ficheiro (sem o caminho)
+	// Usar path separators tanto para Windows (\\) como Unix (/)
+	const fileName = document.fileName.split(/[/\\]/).pop() || '';
+	const fsPath = document.uri.fsPath.split(/[/\\]/).pop() || '';
+	const testFileName = fileName || fsPath;
+	
+	// Verificar se o ficheiro corresponde aos padrões configurados
+	const matchesPattern = supportedPatterns.some(pattern => {
+		// Caso especial: padrão "*.md" - aceitar apenas ficheiros que terminam exatamente com .md
+		// Isto garante que readme.md é aceite, mas readme.ola, readme.me, etc. não são
+		if (pattern === '*.md') {
+			// Verificar se o ficheiro termina exatamente com .md (case-insensitive)
+			// Usar regex para garantir que é .md e não .md.alguma-coisa
+			return /\.md$/i.test(testFileName);
+		}
+		
+		// Para outros padrões (ex: "README*", "*.markdown"), converter glob para regex
+		// Substituir wildcards por placeholders temporários para não serem escapados
+		const placeholders = {
+			doubleStar: '__PLACEHOLDER_DOUBLESTAR__',
+			singleStar: '__PLACEHOLDER_STAR__',
+			question: '__PLACEHOLDER_QUESTION__'
+		};
+		
+		let regexPattern = pattern;
+		
+		// Processar ** primeiro (match qualquer coisa incluindo path separators)
+		regexPattern = regexPattern.replace(/\*\*/g, placeholders.doubleStar);
+		
+		// Processar * (match qualquer coisa exceto path separators)
+		regexPattern = regexPattern.replace(/\*/g, placeholders.singleStar);
+		
+		// Processar ? (match um único caracter)
+		regexPattern = regexPattern.replace(/\?/g, placeholders.question);
+		
+		// Escapar caracteres especiais do regex (exceto os placeholders)
+		// Precisamos escapar: . + ^ $ { } ( ) | [ ] \
+		regexPattern = regexPattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+		
+		// Restaurar wildcards como expressões regex
+		// Como estamos a testar apenas o nome do ficheiro (sem path), * e ** ambos usam .*
+		regexPattern = regexPattern
+			.replace(new RegExp(placeholders.doubleStar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '.*')
+			.replace(new RegExp(placeholders.singleStar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '.*')
+			.replace(new RegExp(placeholders.question.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '.');
+		
+		// Criar regex case-insensitive
+		const regex = new RegExp(`^${regexPattern}$`, 'i');
+		
+		// Testar o nome do ficheiro (sem caminho)
+		return regex.test(testFileName);
+	});
+	
+	// Se o ficheiro corresponde ao padrão, verificar se é Markdown
+	// IMPORTANTE: Para o padrão "*.md", garantimos que apenas ficheiros .md são aceites
+	if (matchesPattern) {
+		// Para padrões que terminam com .md (como "*.md"), verificar se o ficheiro realmente termina com .md
+		// Isto garante que readme.md é aceite, mas readme.ola não é
+		const hasMdExtension = /\.md$/i.test(testFileName);
+		const patternEndsWithMd = supportedPatterns.some(p => p.endsWith('.md'));
+		
+		// Se o padrão especifica .md, o ficheiro DEVE terminar com .md
+		if (patternEndsWithMd && !hasMdExtension) {
+			return false;
+		}
+		
+		// Aceitar se languageId é 'markdown' ou se o ficheiro tem extensão .md
+		// Isto permite que ficheiros .md sejam suportados mesmo que o VS Code
+		// não os reconheça automaticamente como Markdown
+		const isMarkdownLanguage = document.languageId === 'markdown';
+		
+		return isMarkdownLanguage || hasMdExtension;
 	}
 	
-	// Segundo verificar: o nome do ficheiro deve corresponder a um dos padrões configurados
-	return supportedPatterns.some(pattern => {
-		// Converter padrão glob para regex
-		// Exemplo: "*.md" → "^[^/]*\.md$"
-		const regexPattern = pattern
-			.replace(/\*\*/g, '.*')      // ** corresponde a qualquer caminho
-			.replace(/\*/g, '[^/]*')     // * corresponde a qualquer caracter exceto /
-			.replace(/\?/g, '.');        // ? corresponde a um único caracter
-		const regex = new RegExp(`^${regexPattern}$`, 'i'); // Case-insensitive
-		// Testar tanto o nome do ficheiro como o caminho completo
-		return regex.test(fileName) || regex.test(document.uri.fsPath);
-	});
+	return false;
 }
 
 // ============================================================================
@@ -806,7 +863,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 		const document = editor.document;
 			if (!isFileSupported(document)) {
-				vscode.window.showWarningMessage('Este comando só funciona com ficheiros Markdown suportados.');
+				// Mensagem de erro mais informativa para debug
+				const fileName = document.fileName.split(/[/\\]/).pop() || document.fileName;
+				const languageId = document.languageId;
+				const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
+				const supportedPatterns = config.get<string[]>('supportedFiles', ['*.md']);
+				
+				console.log(`[GitHub Style Markdown Preview] File not supported:`, {
+					fileName,
+					languageId,
+					supportedPatterns,
+					fullPath: document.fileName
+				});
+				
+				vscode.window.showWarningMessage(
+					`Este comando só funciona com ficheiros Markdown suportados. ` +
+					`Ficheiro: ${fileName}, Language ID: ${languageId}, Padrões: ${supportedPatterns.join(', ')}`
+				);
 				return;
 			}
 
