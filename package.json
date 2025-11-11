@@ -2,7 +2,7 @@
   "name": "github-style-markdown-preview",
   "displayName": "GitHub Style Markdown Preview",
   "description": "View Markdown files like on GitHub with dark/light mode toggle, auto-update, browser preview, and customizable settings.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "MCCProgrammer",
   "icon": "icon.png",
   "engines": {
@@ -47,8 +47,8 @@
     "keybindings": [
       {
         "command": "github-style-markdown-preview.openMarkDown",
-        "key": "alt+r",
-        "mac": "opt+r",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+opt+p",
         "when": "editorTextFocus && editorLangId == markdown"
       },
       {
@@ -140,9 +140,9 @@
         },
         "github-style-markdown-preview.openPreviewKeybinding": {
           "type": "string",
-          "default": "alt+r",
-          "description": "⚠️ INFORMATIONAL ONLY: Default keyboard shortcut is 'alt+r' (or 'Opt+R' on Mac). To customize, go to File > Preferences > Keyboard Shortcuts (Ctrl+K Ctrl+S) and search for 'Open Markdown Preview'. This setting does not change the actual keybinding - it's for reference only.",
-          "markdownDescription": "⚠️ **INFORMATIONAL ONLY**: Default keyboard shortcut is `alt+r`. **To customize:** Go to `File > Preferences > Keyboard Shortcuts` (or `Ctrl+K Ctrl+S`) and search for `Open Markdown Preview`. **This setting does not change the actual keybinding** - it's for reference only."
+          "default": "ctrl+alt+p",
+          "description": "⚠️ INFORMATIONAL ONLY: Default keyboard shortcut is 'Ctrl+Alt+P' (or 'Cmd+Opt+P' on Mac). To customize, go to File > Preferences > Keyboard Shortcuts (Ctrl+K Ctrl+S) and search for 'Open Markdown Preview'. This setting does not change the actual keybinding - it's for reference only.",
+          "markdownDescription": "⚠️ **INFORMATIONAL ONLY**: Default keyboard shortcut is `Ctrl+Alt+P` (or `Cmd+Opt+P` on Mac). **To customize:** Go to `File > Preferences > Keyboard Shortcuts` (or `Ctrl+K Ctrl+S`) and search for `Open Markdown Preview`. **This setting does not change the actual keybinding** - it's for reference only."
         }
       }
     }

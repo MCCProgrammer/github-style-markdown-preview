@@ -26,8 +26,8 @@ Uma extensão para Visual Studio Code que permite visualizar ficheiros Markdown 
 
 Existem três formas de abrir a preview:
 
-1. **Botão no Editor**: Clique no botão "Open Markdown Preview" na barra de título do editor
-2. **Atalho de Teclado**: Pressione `Alt+R` (Windows/Linux) ou `Opt+R` (Mac)
+1. **Botão na Barra de Status**: Clique no botão "Markdown Preview" na barra de status (canto inferior direito)
+2. **Atalho de Teclado**: Pressione `Ctrl+Alt+P` (Windows/Linux) ou `Cmd+Opt+P` (Mac)
 3. **Command Palette**: Pressione `F1` ou `Ctrl+Shift+P` e digite "Open Markdown Preview"
 
 ### Alternar Tema
@@ -171,7 +171,7 @@ Foca no editor após abrir a preview, permitindo continuar a editar (apenas prev
 
 ### Personalizar Atalho de Teclado
 
-O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
+O atalho padrão para abrir a preview é `Ctrl+Alt+P` (ou `Cmd+Opt+P` no Mac).
 
 **Para personalizar o atalho:**
 1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
@@ -184,7 +184,7 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 
 | Atalho | Ação |
 |--------|------|
-| `Alt+R` / `Opt+R` | Abrir preview (personalizável em Keyboard Shortcuts) |
+| `Ctrl+Alt+P` / `Cmd+Opt+P` | Abrir preview (personalizável em Keyboard Shortcuts) |
 | `Ctrl+Shift+T` / `Cmd+Shift+T` | Alternar tema (dark/light) |
 
 **Nota**: Para personalizar o atalho de abrir preview, vá para `File > Preferences > Keyboard Shortcuts` (ou `Ctrl+K Ctrl+S`) e procure por "Open Markdown Preview".

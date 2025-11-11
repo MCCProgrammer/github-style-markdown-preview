@@ -4,6 +4,22 @@ All notable changes to the "GitHub Style Markdown Preview" extension will be doc
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.3] - 2025-11-10
+
+### Changed
+- ⌨️ Atalho de teclado padrão alterado de `Alt+R` para `Ctrl+Alt+P` (Windows/Linux) ou `Cmd+Opt+P` (Mac)
+- 📝 Atualizada documentação para refletir as novas funcionalidades
+
+### Added
+- 📊 Botão na barra de status para abrir a preview
+  - Aparece automaticamente quando um ficheiro Markdown está aberto
+  - Localizado no canto inferior direito da barra de status
+  - Tooltip mostra o atalho de teclado: "Open Markdown Preview (Ctrl+Alt+P)"
+
+### Fixed
+- 🔧 Melhorada validação de ficheiros suportados para aceitar apenas ficheiros `.md` 
+- 📝 Mensagens de erro mais informativas para debug
+
 ## [0.0.2] - 2025-11-10
 
 ### Added
@@ -31,8 +47,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
   - `enableBreaks`: Quebras de linha simples como HTML
   - `closeOnFileClose`: Fechar preview quando ficheiro fecha
   - `focusEditorAfterOpen`: Focar editor após abrir preview
-- ⌨️ Atalho de teclado padrão: `Alt+R` (personalizável)
-- 📱 Botão no editor para abrir preview
+- ⌨️ Atalho de teclado padrão: `Alt+R` (personalizável) - **Alterado para `Ctrl+Alt+P` na versão 0.0.3**
 - 🎨 Botão de toggle de tema na preview
 - 🌐 Botão "Web" para abrir no browser (se ativado)
 - 📝 Suporte completo para GitHub Flavored Markdown

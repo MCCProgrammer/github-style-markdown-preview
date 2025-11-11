@@ -10,14 +10,15 @@ A extensão **GitHub Style Markdown Preview** permite visualizar ficheiros Markd
 
 Existem várias formas de abrir a preview de um ficheiro Markdown:
 
-#### 1. **Botão no Editor**
-- Quando um ficheiro `.md` está aberto, aparece um botão **"Open README Preview"** na barra de título do editor
+#### 1. **Botão na Barra de Status** (Recomendado)
+- Quando um ficheiro `.md` está aberto, aparece um botão **"Markdown Preview"** na barra de status (canto inferior direito)
 - Clique no botão para abrir a preview
+- Similar ao botão "Go Live" do Live Server
 
 #### 2. **Atalho de Teclado**
-- Pressione `Alt+R` (Windows/Linux) ou `Opt+R` (Mac) quando um ficheiro Markdown está ativo
+- Pressione `Ctrl+Alt+P` (Windows/Linux) ou `Cmd+Opt+P` (Mac) quando um ficheiro Markdown está ativo
 - A preview abre automaticamente ao lado do editor
-- **Nota**: O atalho foi mudado de `Ctrl+Shift+R` para `Alt+R` para evitar conflito com o reload do VS Code
+- **Nota**: O atalho padrão é `Ctrl+Alt+P` (ou `Cmd+Opt+P` no Mac). Pode ser personalizado em Keyboard Shortcuts.
 
 #### 3. **Comando da Paleta**
 - Pressione `F1` ou `Ctrl+Shift+P` (Windows/Linux) ou `Cmd+Shift+P` (Mac)
@@ -230,7 +231,7 @@ Ou para largura total:
 
 ### Personalizar Atalho de Teclado
 
-O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
+O atalho padrão para abrir a preview é `Ctrl+Alt+P` (ou `Cmd+Opt+P` no Mac).
 
 **Para personalizar o atalho:**
 1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
@@ -278,7 +279,7 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 ### Exemplo 1: Trabalhar com README.md
 
 1. Abra um ficheiro `README.md`
-2. Pressione `Alt+R` para abrir a preview
+2. Clique no botão "Markdown Preview" na barra de status ou pressione `Ctrl+Alt+P` para abrir a preview
 3. Edite o ficheiro e veja a preview atualizar automaticamente
 4. Clique no botão para alternar entre dark e light mode
 5. Feche o ficheiro e a preview fecha automaticamente
@@ -319,7 +320,7 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 1. Abra as Settings
 2. Procure "Open In Browser"
 3. Ative a opção
-4. Abra um ficheiro `.md` e use `Alt+R` ou clique no botão "Open README Preview"
+4. Abra um ficheiro `.md` e use `Ctrl+Alt+P` ou clique no botão "Markdown Preview" na barra de status
 5. A preview abre no painel do IDE com um botão "🌐 Web" visível
 6. Clique no botão "🌐 Web" no canto superior direito da preview
 7. A preview abre no seu navegador padrão e a preview do IDE fecha automaticamente
@@ -333,8 +334,8 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 ### A preview não abre
 - Verifique se o ficheiro é um ficheiro Markdown (`.md`)
 - Verifique se o ficheiro está na lista de ficheiros suportados
-- Tente usar o atalho `Alt+R` diretamente
-- Verifique se o botão aparece na barra de título do editor
+- Tente usar o atalho `Ctrl+Alt+P` diretamente ou clique no botão na barra de status
+- Verifique se o botão aparece na barra de status (canto inferior direito)
 
 ### A preview não atualiza
 - Verifique a configuração `updateDelay`
@@ -360,7 +361,7 @@ O atalho padrão para abrir a preview é `Alt+R` (ou `Opt+R` no Mac).
 
 ## 💡 Dicas
 
-1. **Atalhos Rápidos**: Use `Alt+R` para abrir e `Ctrl+Shift+T` para alternar tema
+1. **Atalhos Rápidos**: Use `Ctrl+Alt+P` para abrir (ou clique no botão na barra de status) e `Ctrl+Shift+T` para alternar tema
 2. **Auto-Open**: Ative `autoOpen` se trabalha frequentemente com ficheiros Markdown
 3. **Delay Personalizado**: Ajuste `updateDelay` conforme o tamanho dos seus ficheiros
 4. **Múltiplos Ficheiros**: Pode ter várias previews abertas ao mesmo tempo

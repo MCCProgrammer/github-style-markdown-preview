@@ -1144,11 +1144,49 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		// ========================================================================
+		// STATUS BAR ITEM - Botão na barra de status para abrir preview
+		// ========================================================================
+		
+		/**
+		 * Cria um botão na barra de status (similar ao Live Server) para abrir a preview.
+		 * O botão aparece quando um ficheiro Markdown está aberto e ativo.
+		 */
+		const statusBarItem = vscode.window.createStatusBarItem(
+			vscode.StatusBarAlignment.Right,
+			100 // Prioridade (número menor = mais à direita)
+		);
+		
+		statusBarItem.command = 'github-style-markdown-preview.openMarkDown';
+		statusBarItem.tooltip = 'Open Markdown Preview (Ctrl+Alt+P)';
+		statusBarItem.text = '$(preview) Markdown Preview';
+		
+		/**
+		 * Atualiza a visibilidade do botão na barra de status baseado no editor ativo.
+		 * O botão só aparece quando um ficheiro Markdown suportado está aberto.
+		 */
+		const updateStatusBar = () => {
+			const editor = vscode.window.activeTextEditor;
+			if (editor && isFileSupported(editor.document)) {
+				statusBarItem.show();
+			} else {
+				statusBarItem.hide();
+			}
+		};
+		
+		// Atualizar quando o editor ativo muda
+		const statusBarDisposable = vscode.window.onDidChangeActiveTextEditor(() => {
+			updateStatusBar();
+		});
+		
+		// Atualizar inicialmente
+		updateStatusBar();
+		
+		// ========================================================================
 		// REGISTAR COMANDOS PARA LIMPEZA
 		// ========================================================================
 		
-		// Registar todos os comandos para que sejam limpos corretamente quando a extensão desativar
-		context.subscriptions.push(openCommand, toggleThemeCommand);
+		// Registar todos os comandos e subscriptions para que sejam limpos corretamente quando a extensão desativar
+		context.subscriptions.push(openCommand, toggleThemeCommand, statusBarItem, statusBarDisposable);
 	} catch (error) {
 		console.error('Error activating GitHub Style Markdown Preview:', error);
 		vscode.window.showErrorMessage(`GitHub Style Markdown Preview failed to activate: ${error}`);
