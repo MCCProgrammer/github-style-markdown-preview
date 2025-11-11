@@ -3,6 +3,7 @@
 src/**
 out/**
 node_modules/**
+!node_modules/github-markdown-css/**
 dist/**/test/**
 .gitignore
 vsc-extension-quickstart.md
