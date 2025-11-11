@@ -1,49 +1,49 @@
 # GitHub Style Markdown Preview
 
-Uma extensão para Visual Studio Code que permite visualizar ficheiros Markdown no estilo GitHub, com suporte para temas dark e light, atualização automática em tempo real e várias opções de personalização.
+A Visual Studio Code extension that allows you to preview Markdown files in GitHub style, with dark and light theme support, real-time automatic updates, and various customization options.
 
-## ✨ Funcionalidades
+## ✨ Features
 
-- 🎨 **Preview Estilo GitHub**: Visualize ficheiros Markdown com o estilo GitHub oficial
-- 🌓 **Temas Dark/Light**: Alterna entre temas dark e light com um clique
-- 🔄 **Atualização Automática**: A preview atualiza automaticamente enquanto edita o ficheiro
-- 💾 **Preferências por Ficheiro**: Cada ficheiro guarda a sua preferência de tema
-- 🚀 **Auto-Open**: Abre a preview automaticamente quando abre um ficheiro Markdown
-- 🖥️ **Preview no Browser**: Opção para abrir a preview no navegador externo
-- 📁 **Múltiplos Ficheiros**: Suporta várias previews abertas simultaneamente
-- 🎯 **Proteção de Coluna**: Mantém a preview numa coluna dedicada
+- 🎨 **GitHub Style Preview**: Preview Markdown files with the official GitHub style
+- 🌓 **Dark/Light Themes**: Toggle between dark and light themes with one click
+- 🔄 **Automatic Updates**: Preview updates automatically while editing the file
+- 💾 **Per-File Preferences**: Each file saves its theme preference
+- 🚀 **Auto-Open**: Automatically opens preview when opening a Markdown file
+- 🖥️ **Browser Preview**: Option to open preview in external browser
+- 📁 **Multiple Files**: Supports multiple previews open simultaneously
+- 🎯 **Column Protection**: Keeps preview in a dedicated column
 
-## 🚀 Instalação
+## 🚀 Installation
 
-1. Abra o VS Code
-2. Vá para a secção de Extensões (`Ctrl+Shift+X` ou `Cmd+Shift+X`)
-3. Procure por "GitHub Style Markdown Preview"
-4. Clique em "Install"
+1. Open VS Code
+2. Go to Extensions section (`Ctrl+Shift+X` or `Cmd+Shift+X`)
+3. Search for "GitHub Style Markdown Preview"
+4. Click "Install"
 
-## 📖 Como Usar
+## 📖 How to Use
 
-### Abrir a Preview
+### Open Preview
 
-Existem três formas de abrir a preview:
+There are three ways to open the preview:
 
-1. **Botão na Barra de Status**: Clique no botão "Markdown Preview" na barra de status (canto inferior direito)
-2. **Atalho de Teclado**: Pressione `Ctrl+Alt+P` (Windows/Linux) ou `Cmd+Opt+P` (Mac)
-3. **Command Palette**: Pressione `F1` ou `Ctrl+Shift+P` e digite "Open Markdown Preview"
+1. **Status Bar Button**: Click the "Markdown Preview" button in the status bar (bottom right corner)
+2. **Keyboard Shortcut**: Press `Ctrl+Alt+P` (Windows/Linux) or `Cmd+Opt+P` (Mac)
+3. **Command Palette**: Press `F1` or `Ctrl+Shift+P` and type "Open Markdown Preview"
 
-### Alternar Tema
+### Toggle Theme
 
-1. **Botão na Preview**: Clique no botão 🌙/☀️ no canto superior direito
-2. **Atalho de Teclado**: Pressione `Ctrl+Shift+T` (Windows/Linux) ou `Cmd+Shift+T` (Mac)
-3. **Command Palette**: Digite "Toggle Preview Theme"
+1. **Button in Preview**: Click the 🌙/☀️ button in the top right corner
+2. **Keyboard Shortcut**: Press `Ctrl+Shift+T` (Windows/Linux) or `Cmd+Shift+T` (Mac)
+3. **Command Palette**: Type "Toggle Preview Theme"
 
-## ⚙️ Configurações
+## ⚙️ Settings
 
-A extensão suporta as seguintes configurações:
+The extension supports the following settings:
 
 ### `github-style-markdown-preview.autoOpen`
-Abre automaticamente a preview quando um ficheiro Markdown é aberto.
+Automatically opens preview when a Markdown file is opened.
 
-**Padrão**: `false`
+**Default**: `false`
 
 ```json
 {
@@ -52,9 +52,9 @@ Abre automaticamente a preview quando um ficheiro Markdown é aberto.
 ```
 
 ### `github-style-markdown-preview.updateDelay`
-Delay em milissegundos antes de atualizar a preview após editar (debouncing).
+Delay in milliseconds before updating preview after editing (debouncing).
 
-**Padrão**: `300`
+**Default**: `300`
 
 ```json
 {
@@ -63,9 +63,9 @@ Delay em milissegundos antes de atualizar a preview após editar (debouncing).
 ```
 
 ### `github-style-markdown-preview.supportedFiles`
-Padrões de ficheiros suportados (sintaxe glob).
+Supported file patterns (glob syntax).
 
-**Padrão**: `["*.md"]`
+**Default**: `["*.md"]`
 
 ```json
 {
@@ -78,9 +78,9 @@ Padrões de ficheiros suportados (sintaxe glob).
 ```
 
 ### `github-style-markdown-preview.protectPreviewColumn`
-Protege a coluna da preview (coluna 2) de outros ficheiros.
+Protects the preview column (column 2) from other files.
 
-**Padrão**: `false`
+**Default**: `false`
 
 ```json
 {
@@ -89,9 +89,9 @@ Protege a coluna da preview (coluna 2) de outros ficheiros.
 ```
 
 ### `github-style-markdown-preview.openInBrowser`
-Mostra um botão "Web" na preview do IDE para abrir no navegador externo.
+Shows a "Web" button in the IDE preview to open in external browser.
 
-**Padrão**: `false`
+**Default**: `false`
 
 ```json
 {
@@ -99,18 +99,18 @@ Mostra um botão "Web" na preview do IDE para abrir no navegador externo.
 }
 ```
 
-**Nota**: 
-- Quando ativado, aparece um botão "🌐 Web" na preview do IDE
-- Ao clicar no botão, abre a preview no navegador e fecha a preview do IDE
-- O browser preview usa o tema preferido guardado (não tem botão de toggle dark/light mode)
-- Requer um workspace aberto para funcionar corretamente (cria ficheiro HTML temporário na pasta `.vscode`)
+**Note**: 
+- When enabled, a "🌐 Web" button appears in the IDE preview
+- Clicking the button opens preview in browser and closes IDE preview
+- Browser preview uses the saved preferred theme (no dark/light mode toggle button)
+- Requires an open workspace to work correctly (creates temporary HTML file in `.vscode` folder)
 
 ### `github-style-markdown-preview.maxWidth`
-Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura total.
+Maximum width of content in preview (in pixels). Use `"auto"` for full width.
 
-**Padrão**: `980` (pixels)
+**Default**: `980` (pixels)
 
-**Nota**: O GitHub usa 980px como largura padrão.
+**Note**: GitHub uses 980px as default width.
 
 ```json
 {
@@ -118,7 +118,7 @@ Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura t
 }
 ```
 
-Ou para largura total:
+Or for full width:
 ```json
 {
   "github-style-markdown-preview.maxWidth": "auto"
@@ -126,9 +126,9 @@ Ou para largura total:
 ```
 
 ### `github-style-markdown-preview.enableEmoji`
-Ativa a renderização de emojis (ex: :smile:, :heart:). Aplica-se tanto à preview do IDE quanto à do browser.
+Enables emoji rendering (e.g., :smile:, :heart:). Applies to both IDE and browser previews.
 
-**Padrão**: `true`
+**Default**: `true`
 
 ```json
 {
@@ -137,9 +137,9 @@ Ativa a renderização de emojis (ex: :smile:, :heart:). Aplica-se tanto à prev
 ```
 
 ### `github-style-markdown-preview.enableBreaks`
-Converte quebras de linha simples em quebras de linha HTML (comportamento similar ao GitHub). Aplica-se tanto à preview do IDE quanto à do browser.
+Converts single line breaks to HTML line breaks (similar to GitHub behavior). Applies to both IDE and browser previews.
 
-**Padrão**: `false`
+**Default**: `false`
 
 ```json
 {
@@ -148,9 +148,9 @@ Converte quebras de linha simples em quebras de linha HTML (comportamento simila
 ```
 
 ### `github-style-markdown-preview.closeOnFileClose`
-Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas preview do IDE).
+Automatically closes preview when the Markdown file is closed (IDE preview only).
 
-**Padrão**: `true`
+**Default**: `true`
 
 ```json
 {
@@ -159,9 +159,9 @@ Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas pr
 ```
 
 ### `github-style-markdown-preview.focusEditorAfterOpen`
-Foca no editor após abrir a preview, permitindo continuar a editar (apenas preview do IDE).
+Focuses the editor after opening preview, allowing you to continue editing (IDE preview only).
 
-**Padrão**: `true`
+**Default**: `true`
 
 ```json
 {
@@ -169,68 +169,68 @@ Foca no editor após abrir a preview, permitindo continuar a editar (apenas prev
 }
 ```
 
-### Personalizar Atalho de Teclado
+### Customize Keyboard Shortcut
 
-O atalho padrão para abrir a preview é `Ctrl+Alt+P` (ou `Cmd+Opt+P` no Mac).
+The default shortcut to open preview is `Ctrl+Alt+P` (or `Cmd+Opt+P` on Mac).
 
-**Para personalizar o atalho:**
-1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
-2. Procure por "Open Markdown Preview"
-3. Clique duas vezes no atalho atual
-4. Pressione a nova combinação de teclas desejada
-5. O atalho será atualizado automaticamente
+**To customize the shortcut:**
+1. Press `Ctrl+K Ctrl+S` (or `Cmd+K Cmd+S` on Mac) to open Keyboard Shortcuts
+2. Search for "Open Markdown Preview"
+3. Double-click the current shortcut
+4. Press the desired new key combination
+5. The shortcut will be updated automatically
 
-## 🎯 Atalhos de Teclado
+## 🎯 Keyboard Shortcuts
 
-| Atalho | Ação |
-|--------|------|
-| `Ctrl+Alt+P` / `Cmd+Opt+P` | Abrir preview (personalizável em Keyboard Shortcuts) |
-| `Ctrl+Shift+T` / `Cmd+Shift+T` | Alternar tema (dark/light) |
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Alt+P` / `Cmd+Opt+P` | Open preview (customizable in Keyboard Shortcuts) |
+| `Ctrl+Shift+T` / `Cmd+Shift+T` | Toggle theme (dark/light) |
 
-**Nota**: Para personalizar o atalho de abrir preview, vá para `File > Preferences > Keyboard Shortcuts` (ou `Ctrl+K Ctrl+S`) e procure por "Open Markdown Preview".
+**Note**: To customize the open preview shortcut, go to `File > Preferences > Keyboard Shortcuts` (or `Ctrl+K Ctrl+S`) and search for "Open Markdown Preview".
 
-## 📚 Documentação
+## 📚 Documentation
 
-Para mais informações detalhadas, consulte o [Guia de Uso](USAGE.md).
+For more detailed information, see the [Usage Guide](USAGE.md).
 
-## 🔧 Requisitos
+## 🔧 Requirements
 
-- Visual Studio Code 1.85.0 ou superior
+- Visual Studio Code 1.85.0 or higher
 
-## 🐛 Problemas Conhecidos
+## 🐛 Known Issues
 
-Nenhum problema conhecido no momento.
+No known issues at this time.
 
-## 📝 Notas de Lançamento
+## 📝 Release Notes
 
-Consulte [CHANGELOG.md](CHANGELOG.md) para histórico completo de versões.
+See [CHANGELOG.md](CHANGELOG.md) for complete version history.
 
-### 0.0.1 - Lançamento Inicial
-- Preview estilo GitHub para ficheiros Markdown
-- Suporte para temas dark e light com toggle
-- Atualização automática em tempo real
-- Preferências de tema guardadas por ficheiro
-- Auto-open opcional
-- Preview no browser externo
-- Proteção de coluna de preview
-- Configurações personalizáveis (maxWidth, emoji, breaks, etc.)
-- Suporte completo para GitHub Flavored Markdown
-- Suporte para emojis GitHub (:smile:, :rocket:, etc.)
+### 0.0.1 - Initial Release
+- GitHub-style preview for Markdown files
+- Dark and light theme support with toggle
+- Real-time automatic updates
+- Theme preferences saved per file
+- Optional auto-open
+- External browser preview
+- Preview column protection
+- Customizable settings (maxWidth, emoji, breaks, etc.)
+- Full support for GitHub Flavored Markdown
+- Support for GitHub emojis (:smile:, :rocket:, etc.)
 
-## 🤝 Contribuições
+## 🤝 Contributing
 
-Contribuições são bem-vindas! Por favor, abra uma issue ou pull request no repositório.
+Contributions are welcome! Please open an issue or pull request in the repository.
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob licença MIT.
+This project is licensed under the MIT License.
 
-## 🙏 Agradecimentos
+## 🙏 Acknowledgments
 
-- [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css) pelo estilo CSS
-- [markdown-it](https://github.com/markdown-it/markdown-it) pelo renderizador Markdown
-- [markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji) pelo suporte a emojis
+- [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css) for the CSS style
+- [markdown-it](https://github.com/markdown-it/markdown-it) for the Markdown renderer
+- [markdown-it-emoji](https://github.com/markdown-it/markdown-it-emoji) for emoji support
 
 ---
 
-**Desfrute da extensão GitHub Style Markdown Preview!** 🎉
+**Enjoy the GitHub Style Markdown Preview extension!** 🎉

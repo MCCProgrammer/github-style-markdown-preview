@@ -1,112 +1,112 @@
-# GitHub Style Markdown Preview - Guia de Uso
+# GitHub Style Markdown Preview - Usage Guide
 
-## 📖 Visão Geral
+## 📖 Overview
 
-A extensão **GitHub Style Markdown Preview** permite visualizar ficheiros Markdown no estilo GitHub, com suporte para temas dark e light, atualização automática em tempo real e várias opções de personalização.
+The **GitHub Style Markdown Preview** extension allows you to preview Markdown files in GitHub style, with dark and light theme support, real-time automatic updates, and various customization options.
 
-## 🚀 Como Usar
+## 🚀 How to Use
 
-### Abrir a Preview
+### Open Preview
 
-Existem várias formas de abrir a preview de um ficheiro Markdown:
+There are several ways to open the preview of a Markdown file:
 
-#### 1. **Botão na Barra de Status** (Recomendado)
-- Quando um ficheiro `.md` está aberto, aparece um botão **"Markdown Preview"** na barra de status (canto inferior direito)
-- Clique no botão para abrir a preview
-- Similar ao botão "Go Live" do Live Server
+#### 1. **Status Bar Button** (Recommended)
+- When a `.md` file is open, a **"Markdown Preview"** button appears in the status bar (bottom right corner)
+- Click the button to open the preview
+- Similar to the "Go Live" button in Live Server
 
-#### 2. **Atalho de Teclado**
-- Pressione `Ctrl+Alt+P` (Windows/Linux) ou `Cmd+Opt+P` (Mac) quando um ficheiro Markdown está ativo
-- A preview abre automaticamente ao lado do editor
-- **Nota**: O atalho padrão é `Ctrl+Alt+P` (ou `Cmd+Opt+P` no Mac). Pode ser personalizado em Keyboard Shortcuts.
+#### 2. **Keyboard Shortcut**
+- Press `Ctrl+Alt+P` (Windows/Linux) or `Cmd+Opt+P` (Mac) when a Markdown file is active
+- The preview opens automatically beside the editor
+- **Note**: The default shortcut is `Ctrl+Alt+P` (or `Cmd+Opt+P` on Mac). Can be customized in Keyboard Shortcuts.
 
-#### 3. **Comando da Paleta**
-- Pressione `F1` ou `Ctrl+Shift+P` (Windows/Linux) ou `Cmd+Shift+P` (Mac)
-- Digite "Open README Preview" e pressione Enter
+#### 3. **Command Palette**
+- Press `F1` or `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
+- Type "Open Markdown Preview" and press Enter
 
-### Alternar entre Dark e Light Mode
+### Toggle between Dark and Light Mode
 
-Existem três formas de alternar o tema:
+There are three ways to toggle the theme:
 
-#### 1. **Botão na Preview**
-- Clique no botão **🌙 Dark Mode** ou **☀️ Light Mode** no canto superior direito da preview
+#### 1. **Button in Preview**
+- Click the **🌙 Dark Mode** or **☀️ Light Mode** button in the top right corner of the preview
 
-#### 2. **Atalho de Teclado**
-- Pressione `Ctrl+Shift+T` (Windows/Linux) ou `Cmd+Shift+T` (Mac) quando a preview está ativa
+#### 2. **Keyboard Shortcut**
+- Press `Ctrl+Shift+T` (Windows/Linux) or `Cmd+Shift+T` (Mac) when the preview is active
 
-#### 3. **Comando da Paleta**
-- Pressione `F1` ou `Ctrl+Shift+P`
-- Digite "Toggle Preview Theme" e pressione Enter
+#### 3. **Command Palette**
+- Press `F1` or `Ctrl+Shift+P`
+- Type "Toggle Preview Theme" and press Enter
 
-### Fechar a Preview
+### Close Preview
 
-- **Fechar o ficheiro**: Quando fecha um ficheiro Markdown, a preview correspondente fecha automaticamente
-- **Fechar manualmente**: Clique no botão X no separador da preview
-- **Com auto-open ativado**: Se fechar a preview manualmente, ela não reabre automaticamente. Só reabre quando você fechar e reabrir o ficheiro
+- **Close the file**: When you close a Markdown file, the corresponding preview closes automatically
+- **Close manually**: Click the X button on the preview tab
+- **With auto-open enabled**: If you close the preview manually, it won't reopen automatically. It only reopens when you close and reopen the file
 
-### Foco Automático
+### Automatic Focus
 
-- Quando abre a preview, o foco volta automaticamente para o ficheiro `.md`
-- Isso permite que quando abrir outro ficheiro, ele abra na aba correta (não na preview)
-- Mantém o seu fluxo de trabalho fluido
+- When you open the preview, focus automatically returns to the `.md` file
+- This allows other files to open in the correct tab (not in the preview)
+- Keeps your workflow smooth
 
-## ⚙️ Configurações
+## ⚙️ Settings
 
-Para aceder às configurações:
+To access settings:
 
-1. Abra as Settings do VS Code (`Ctrl+,` ou `Cmd+,`)
-2. Procure por "GitHub README Viewer"
-3. Configure as opções conforme necessário
+1. Open VS Code Settings (`Ctrl+,` or `Cmd+,`)
+2. Search for "GitHub Style Markdown Preview"
+3. Configure options as needed
 
-### Opções de Configuração
+### Configuration Options
 
-#### `github-readme-viewer.autoOpen`
-- **Tipo**: `boolean`
-- **Padrão**: `false`
-- **Descrição**: Abre automaticamente a preview quando um ficheiro Markdown é aberto. Quando ativado, também verifica ficheiros já abertos quando o VS Code inicia e abre as previews automaticamente.
-- **Recomendação**: Ative se quer que a preview abra sempre que abrir um ficheiro `.md` ou quando o VS Code inicia com ficheiros Markdown abertos
+#### `github-style-markdown-preview.autoOpen`
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Automatically opens preview when a Markdown file is opened. When enabled, also checks already open files when VS Code starts and opens previews automatically.
+- **Recommendation**: Enable if you want the preview to always open when opening a `.md` file or when VS Code starts with Markdown files open
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.autoOpen": true
+  "github-style-markdown-preview.autoOpen": true
 }
 ```
 
-**Nota**: Se fechar a preview manualmente, ela não reabre automaticamente até fechar e reabrir o ficheiro.
+**Note**: If you close the preview manually, it won't reopen automatically until you close and reopen the file.
 
-#### `github-readme-viewer.updateDelay`
-- **Tipo**: `number`
-- **Padrão**: `300` (milissegundos)
-- **Descrição**: Delay antes de atualizar a preview após editar o ficheiro
-- **Valores**:
-  - `0` = Atualização instantânea (pode ser mais lento com ficheiros grandes)
-  - `300` = Aguarda 300ms após parar de editar (recomendado)
-  - `1000` = Aguarda 1 segundo (útil para ficheiros muito grandes)
-- **Mínimo**: `0`
-- **Máximo**: `2000`
+#### `github-style-markdown-preview.updateDelay`
+- **Type**: `number`
+- **Default**: `300` (milliseconds)
+- **Description**: Delay before updating preview after editing the file
+- **Values**:
+  - `0` = Instant update (may be slower with large files)
+  - `300` = Waits 300ms after stopping editing (recommended)
+  - `1000` = Waits 1 second (useful for very large files)
+- **Minimum**: `0`
+- **Maximum**: `2000`
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.updateDelay": 500
+  "github-style-markdown-preview.updateDelay": 500
 }
 ```
 
-#### `github-readme-viewer.supportedFiles`
-- **Tipo**: `array` de `string`
-- **Padrão**: `["*.md"]`
-- **Descrição**: Padrões de ficheiros suportados (usando sintaxe glob)
-- **Padrões comuns**:
-  - `*.md` - Todos os ficheiros `.md`
-  - `*.markdown` - Todos os ficheiros `.markdown`
-  - `README*` - Todos os ficheiros que começam com "README"
-  - `**/*.md` - Todos os ficheiros `.md` em qualquer pasta
+#### `github-style-markdown-preview.supportedFiles`
+- **Type**: `array` of `string`
+- **Default**: `["*.md"]`
+- **Description**: Supported file patterns (using glob syntax)
+- **Common patterns**:
+  - `*.md` - All `.md` files
+  - `*.markdown` - All `.markdown` files
+  - `README*` - All files starting with "README"
+  - `**/*.md` - All `.md` files in any folder
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.supportedFiles": [
+  "github-style-markdown-preview.supportedFiles": [
     "*.md",
     "*.markdown",
     "README*"
@@ -114,274 +114,273 @@ Para aceder às configurações:
 }
 ```
 
-#### `github-readme-viewer.protectPreviewColumn`
-- **Tipo**: `boolean`
-- **Padrão**: `false`
-- **Descrição**: Protege a coluna da preview de outros ficheiros. Quando ativado:
-  - A preview usa uma coluna dedicada (coluna 2)
-  - Outros ficheiros abertos nessa coluna serão automaticamente movidos para a primeira coluna
-  - Ficheiros que tentam abrir na coluna da preview são redirecionados para a coluna 1
-- **Recomendação**: Ative se quiser manter a preview sempre visível sem interferência de outros ficheiros
+#### `github-style-markdown-preview.protectPreviewColumn`
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Protects the preview column from other files. When enabled:
+  - Preview uses a dedicated column (column 2)
+  - Other files opened in that column will be automatically moved to the first column
+  - Files trying to open in the preview column are redirected to column 1
+- **Recommendation**: Enable if you want to keep the preview always visible without interference from other files
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.protectPreviewColumn": true
+  "github-style-markdown-preview.protectPreviewColumn": true
 }
 ```
 
-#### `github-readme-viewer.openInBrowser`
-- **Tipo**: `boolean`
-- **Padrão**: `false`
-- **Descrição**: Quando ativado, mostra um botão "🌐 Web" na preview do IDE. Ao clicar no botão:
-  - A preview abre no seu navegador padrão
-  - A preview do IDE fecha automaticamente
-  - Atualiza automaticamente quando edita o ficheiro (usando o `updateDelay` configurado)
-  - Usa um ficheiro HTML temporário na pasta `.vscode` do workspace
-  - O ficheiro é apagado automaticamente quando o documento é fechado
-- **Recomendação**: Ative se quiser ter a opção de abrir a preview no navegador a partir da preview do IDE
+#### `github-style-markdown-preview.openInBrowser`
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: When enabled, shows a "🌐 Web" button in the IDE preview. When clicking the button:
+  - Preview opens in your default browser
+  - IDE preview closes automatically
+  - Updates automatically when editing the file (using the configured `updateDelay`)
+  - Uses a temporary HTML file in the workspace `.vscode` folder
+  - File is automatically deleted when the document is closed
+- **Recommendation**: Enable if you want the option to open preview in browser from the IDE preview
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.openInBrowser": true
+  "github-style-markdown-preview.openInBrowser": true
 }
 ```
 
-**Nota**: 
-- Esta configuração apenas mostra o botão "Web" na preview do IDE
-- Para abrir no browser, é necessário clicar no botão "🌐 Web" que aparece no canto superior direito da preview
-- Quando a preview é aberta no browser, ela é servida através de um ficheiro HTML temporário que é atualizado automaticamente
-- Se não houver workspace aberto, ficheiros pequenos (< 2MB) podem usar data URI (funcionalidade limitada)
+**Note**: 
+- This setting only shows the "Web" button in the IDE preview
+- To open in browser, you need to click the "🌐 Web" button that appears in the top right corner of the preview
+- When preview is opened in browser, it's served through a temporary HTML file that updates automatically
+- If there's no workspace open, small files (< 2MB) may use data URI (limited functionality)
 
-#### `github-readme-viewer.maxWidth`
-- **Tipo**: `number` | `string`
-- **Padrão**: `980` (pixels)
-- **Descrição**: Largura máxima do conteúdo na preview (em pixels). Use `"auto"` para largura total. Aplica-se tanto à preview do IDE quanto à do browser.
-- **Valores**: 
-  - Número (pixels) - ex: `980`, `1200`
-  - `"auto"` - largura total do ecrã
-- **Nota**: O GitHub usa 980px como largura padrão para melhor legibilidade.
+#### `github-style-markdown-preview.maxWidth`
+- **Type**: `number` | `string`
+- **Default**: `980` (pixels)
+- **Description**: Maximum width of content in preview (in pixels). Use `"auto"` for full width. Applies to both IDE and browser previews.
+- **Values**: 
+  - Number (pixels) - e.g., `980`, `1200`
+  - `"auto"` - full screen width
+- **Note**: GitHub uses 980px as default width for better readability.
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.maxWidth": 980
+  "github-style-markdown-preview.maxWidth": 980
 }
 ```
 
-Ou para largura total:
+Or for full width:
 ```json
 {
-  "github-readme-viewer.maxWidth": "auto"
+  "github-style-markdown-preview.maxWidth": "auto"
 }
 ```
 
-#### `github-readme-viewer.enableEmoji`
-- **Tipo**: `boolean`
-- **Padrão**: `true`
-- **Descrição**: Ativa a renderização de emojis (ex: :smile:, :heart:). Aplica-se tanto à preview do IDE quanto à do browser.
-- **Recomendação**: Mantenha ativado se usar emojis nos seus documentos Markdown
+#### `github-style-markdown-preview.enableEmoji`
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Enables emoji rendering (e.g., :smile:, :heart:). Applies to both IDE and browser previews.
+- **Recommendation**: Keep enabled if you use emojis in your Markdown documents
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.enableEmoji": true
+  "github-style-markdown-preview.enableEmoji": true
 }
 ```
 
-#### `github-readme-viewer.enableBreaks`
-- **Tipo**: `boolean`
-- **Padrão**: `false`
-- **Descrição**: Converte quebras de linha simples em quebras de linha HTML (comportamento similar ao GitHub). Aplica-se tanto à preview do IDE quanto à do browser.
-- **Recomendação**: Ative se quiser que quebras de linha simples sejam renderizadas como quebras de linha HTML (comportamento do GitHub)
+#### `github-style-markdown-preview.enableBreaks`
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Converts single line breaks to HTML line breaks (similar to GitHub behavior). Applies to both IDE and browser previews.
+- **Recommendation**: Enable if you want single line breaks to be rendered as HTML line breaks (GitHub behavior)
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.enableBreaks": true
+  "github-style-markdown-preview.enableBreaks": true
 }
 ```
 
-#### `github-readme-viewer.closeOnFileClose`
-- **Tipo**: `boolean`
-- **Padrão**: `true`
-- **Descrição**: Fecha automaticamente a preview quando o ficheiro Markdown é fechado (apenas preview do IDE).
-- **Recomendação**: Mantenha ativado para manter o workspace limpo
+#### `github-style-markdown-preview.closeOnFileClose`
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Automatically closes preview when the Markdown file is closed (IDE preview only).
+- **Recommendation**: Keep enabled to keep workspace clean
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.closeOnFileClose": true
+  "github-style-markdown-preview.closeOnFileClose": true
 }
 ```
 
-#### `github-readme-viewer.focusEditorAfterOpen`
-- **Tipo**: `boolean`
-- **Padrão**: `true`
-- **Descrição**: Foca no editor após abrir a preview, permitindo continuar a editar imediatamente (apenas preview do IDE).
-- **Recomendação**: Mantenha ativado para um fluxo de trabalho mais fluido
+#### `github-style-markdown-preview.focusEditorAfterOpen`
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Focuses the editor after opening preview, allowing you to continue editing immediately (IDE preview only).
+- **Recommendation**: Keep enabled for a smoother workflow
 
-**Exemplo:**
+**Example:**
 ```json
 {
-  "github-readme-viewer.focusEditorAfterOpen": true
+  "github-style-markdown-preview.focusEditorAfterOpen": true
 }
 ```
 
-### Personalizar Atalho de Teclado
+### Customize Keyboard Shortcut
 
-O atalho padrão para abrir a preview é `Ctrl+Alt+P` (ou `Cmd+Opt+P` no Mac).
+The default shortcut to open preview is `Ctrl+Alt+P` (or `Cmd+Opt+P` on Mac).
 
-**Para personalizar o atalho:**
-1. Pressione `Ctrl+K Ctrl+S` (ou `Cmd+K Cmd+S` no Mac) para abrir Keyboard Shortcuts
-2. Procure por "Open README Preview"
-3. Clique duas vezes no atalho atual
-4. Pressione a nova combinação de teclas desejada
-5. O atalho será atualizado automaticamente
+**To customize the shortcut:**
+1. Press `Ctrl+K Ctrl+S` (or `Cmd+K Cmd+S` on Mac) to open Keyboard Shortcuts
+2. Search for "Open Markdown Preview"
+3. Double-click the current shortcut
+4. Press the desired new key combination
+5. The shortcut will be updated automatically
 
-**Nota**: Os atalhos de teclado não podem ser configurados através das configurações da extensão. Eles devem ser personalizados através das preferências de Keyboard Shortcuts do VS Code.
+**Note**: Keyboard shortcuts cannot be configured through extension settings. They must be customized through VS Code Keyboard Shortcuts preferences.
 
-## 🎨 Funcionalidades
+## 🎨 Features
 
-### ✅ Atualização Automática
-- A preview atualiza automaticamente quando edita o ficheiro Markdown
-- O delay é configurável através da opção `updateDelay`
-- Atualização imediata quando guarda o ficheiro (Ctrl+S)
-- Debouncing configurável para evitar atualizações excessivas durante a escrita
+### ✅ Automatic Updates
+- Preview updates automatically when editing the Markdown file
+- Delay is configurable through the `updateDelay` option
+- Immediate update when saving the file (Ctrl+S)
+- Configurable debouncing to avoid excessive updates during typing
 
-### ✅ Preferências Guardadas
-- A preferência de tema (dark/light) é guardada por ficheiro
-- Quando reabre um ficheiro, a preview usa o último tema escolhido
-- Preferências persistem entre sessões do VS Code
-- Cada ficheiro tem a sua própria preferência de tema
+### ✅ Saved Preferences
+- Theme preference (dark/light) is saved per file
+- When reopening a file, preview uses the last chosen theme
+- Preferences persist between VS Code sessions
+- Each file has its own theme preference
 
-### ✅ Suporte para Múltiplos Ficheiros
-- Pode ter várias previews abertas ao mesmo tempo (uma por ficheiro)
-- Cada preview mantém as suas próprias preferências
-- Prevenção de duplicados (não abre múltiplas previews para o mesmo ficheiro)
+### ✅ Multiple Files Support
+- Can have multiple previews open at the same time (one per file)
+- Each preview maintains its own preferences
+- Duplicate prevention (doesn't open multiple previews for the same file)
 
-### ✅ Integração com VS Code
-- A preview adapta-se ao tema do VS Code (se não tiver preferência guardada)
-- Usa as cores do VS Code para melhor integração visual
-- Foco automático no editor após abrir a preview
-- Fecha automaticamente quando o ficheiro é fechado
+### ✅ VS Code Integration
+- Preview adapts to VS Code theme (if no saved preference)
+- Uses VS Code colors for better visual integration
+- Automatic focus on editor after opening preview
+- Closes automatically when file is closed
 
-### ✅ Preview no Browser
-- Opção para abrir preview no navegador externo (via botão "Web" na preview do IDE)
-- Atualização automática no browser quando edita o ficheiro
-- Ficheiro HTML temporário criado na pasta `.vscode` do workspace
-- Limpeza automática quando o ficheiro é fechado
-- **Nota**: O browser preview não tem botão de toggle dark/light mode - o tema é definido no momento da abertura baseado na preferência guardada
+### ✅ Browser Preview
+- Option to open preview in external browser (via "Web" button in IDE preview)
+- Automatic updates in browser when editing the file
+- Temporary HTML file created in workspace `.vscode` folder
+- Automatic cleanup when file is closed
+- **Note**: Browser preview doesn't have dark/light mode toggle button - theme is set at opening time based on saved preference
 
-## 📝 Exemplos de Uso
+## 📝 Usage Examples
 
-### Exemplo 1: Trabalhar com README.md
+### Example 1: Working with README.md
 
-1. Abra um ficheiro `README.md`
-2. Clique no botão "Markdown Preview" na barra de status ou pressione `Ctrl+Alt+P` para abrir a preview
-3. Edite o ficheiro e veja a preview atualizar automaticamente
-4. Clique no botão para alternar entre dark e light mode
-5. Feche o ficheiro e a preview fecha automaticamente
+1. Open a `README.md` file
+2. Click the "Markdown Preview" button in the status bar or press `Ctrl+Alt+P` to open preview
+3. Edit the file and see the preview update automatically
+4. Click the button to toggle between dark and light mode
+5. Close the file and preview closes automatically
 
-### Exemplo 2: Ativar Auto-Open
+### Example 2: Enable Auto-Open
 
-1. Abra as Settings (`Ctrl+,`)
-2. Procure "GitHub README Viewer"
-3. Ative "Auto Open"
-4. Agora, sempre que abrir um ficheiro `.md`, a preview abre automaticamente
+1. Open Settings (`Ctrl+,`)
+2. Search for "GitHub Style Markdown Preview"
+3. Enable "Auto Open"
+4. Now, whenever you open a `.md` file, preview opens automatically
 
-### Exemplo 3: Configurar Delay Personalizado
+### Example 3: Configure Custom Delay
 
-1. Abra as Settings
-2. Procure "Update Delay"
-3. Defina o valor desejado (ex: `500` para 500ms)
-4. A preview atualiza com o delay configurado
+1. Open Settings
+2. Search for "Update Delay"
+3. Set desired value (e.g., `500` for 500ms)
+4. Preview updates with the configured delay
 
-### Exemplo 4: Suportar Outros Ficheiros Markdown
+### Example 4: Support Other Markdown Files
 
-1. Abra as Settings
-2. Procure "Supported Files"
-3. Adicione padrões como `["*.md", "*.markdown", "*.txt"]`
-4. Agora a extensão funciona com esses tipos de ficheiro
+1. Open Settings
+2. Search for "Supported Files"
+3. Add patterns like `["*.md", "*.markdown", "*.txt"]`
+4. Now the extension works with those file types
 
-### Exemplo 5: Proteger a Coluna da Preview
+### Example 5: Protect Preview Column
 
-1. Abra as Settings
-2. Procure "Protect Preview Column"
-3. Ative a opção
-4. A preview agora usa uma coluna dedicada (coluna 2)
-5. Outros ficheiros abertos nessa coluna serão movidos automaticamente para a primeira coluna
-6. Se um ficheiro tentar abrir na coluna da preview, será redirecionado para a coluna 1
-7. Mantém a preview sempre visível sem interferência
+1. Open Settings
+2. Search for "Protect Preview Column"
+3. Enable the option
+4. Preview now uses a dedicated column (column 2)
+5. Other files opened in that column will be automatically moved to the first column
+6. If a file tries to open in the preview column, it will be redirected to column 1
+7. Keeps preview always visible without interference
 
-### Exemplo 6: Abrir Preview no Navegador
+### Example 6: Open Preview in Browser
 
-1. Abra as Settings
-2. Procure "Open In Browser"
-3. Ative a opção
-4. Abra um ficheiro `.md` e use `Ctrl+Alt+P` ou clique no botão "Markdown Preview" na barra de status
-5. A preview abre no painel do IDE com um botão "🌐 Web" visível
-6. Clique no botão "🌐 Web" no canto superior direito da preview
-7. A preview abre no seu navegador padrão e a preview do IDE fecha automaticamente
-8. Edite o ficheiro e veja a preview atualizar automaticamente no navegador
-9. A preview fecha automaticamente quando fecha o ficheiro no VS Code
+1. Open Settings
+2. Search for "Open In Browser"
+3. Enable the option
+4. Open a `.md` file and use `Ctrl+Alt+P` or click the "Markdown Preview" button in the status bar
+5. Preview opens in IDE panel with a "🌐 Web" button visible
+6. Click the "🌐 Web" button in the top right corner of the preview
+7. Preview opens in your default browser and IDE preview closes automatically
+8. Edit the file and see preview update automatically in browser
+9. Preview closes automatically when you close the file in VS Code
 
-**Nota**: O botão "Web" só aparece na preview do IDE quando `openInBrowser` está ativado. A preview não abre diretamente no browser quando a configuração está ativa - é necessário clicar no botão.
+**Note**: The "Web" button only appears in IDE preview when `openInBrowser` is enabled. Preview doesn't open directly in browser when the setting is active - you need to click the button.
 
-## 🔧 Resolução de Problemas
+## 🔧 Troubleshooting
 
-### A preview não abre
-- Verifique se o ficheiro é um ficheiro Markdown (`.md`)
-- Verifique se o ficheiro está na lista de ficheiros suportados
-- Tente usar o atalho `Ctrl+Alt+P` diretamente ou clique no botão na barra de status
-- Verifique se o botão aparece na barra de status (canto inferior direito)
+### Preview doesn't open
+- Verify the file is a Markdown file (`.md`)
+- Verify the file is in the supported files list
+- Try using the `Ctrl+Alt+P` shortcut directly or click the button in the status bar
+- Verify the button appears in the status bar (bottom right corner)
 
-### A preview não atualiza
-- Verifique a configuração `updateDelay`
-- Tente definir `updateDelay` para `0` para atualização instantânea
-- Certifique-se de que o ficheiro está salvo
+### Preview doesn't update
+- Check the `updateDelay` setting
+- Try setting `updateDelay` to `0` for instant update
+- Make sure the file is saved
 
-### O tema não muda
-- Certifique-se de que a preview está ativa (visível)
-- Tente usar o atalho `Ctrl+Shift+T`
-- Verifique se há alguma mensagem de erro no console
+### Theme doesn't change
+- Make sure the preview is active (visible)
+- Try using the `Ctrl+Shift+T` shortcut
+- Check for any error messages in the console
 
-### Auto-open não funciona
-- Verifique se `autoOpen` está ativado nas configurações
-- Certifique-se de que o ficheiro corresponde aos padrões em `supportedFiles`
-- Se fechou a preview manualmente, ela não reabre automaticamente até abrir o ficheiro novamente
+### Auto-open doesn't work
+- Verify `autoOpen` is enabled in settings
+- Make sure the file matches patterns in `supportedFiles`
+- If you closed the preview manually, it won't reopen automatically until you open the file again
 
-### Preview no browser não funciona
-- Certifique-se de que tem um workspace aberto (necessário para criar o ficheiro HTML temporário)
-- Se não houver workspace, apenas ficheiros pequenos (< 2MB) podem funcionar com data URI
-- Verifique se a configuração `openInBrowser` está ativada para mostrar o botão "Web"
-- Lembre-se que é necessário clicar no botão "🌐 Web" na preview do IDE para abrir no browser
-- A preview não abre diretamente no browser - primeiro abre no IDE, depois clique no botão "Web"
+### Browser preview doesn't work
+- Make sure you have a workspace open (required to create temporary HTML file)
+- If there's no workspace, only small files (< 2MB) may work with data URI
+- Verify the `openInBrowser` setting is enabled to show the "Web" button
+- Remember you need to click the "🌐 Web" button in IDE preview to open in browser
+- Preview doesn't open directly in browser - first opens in IDE, then click the "Web" button
 
-## 💡 Dicas
+## 💡 Tips
 
-1. **Atalhos Rápidos**: Use `Ctrl+Alt+P` para abrir (ou clique no botão na barra de status) e `Ctrl+Shift+T` para alternar tema
-2. **Auto-Open**: Ative `autoOpen` se trabalha frequentemente com ficheiros Markdown
-3. **Delay Personalizado**: Ajuste `updateDelay` conforme o tamanho dos seus ficheiros
-4. **Múltiplos Ficheiros**: Pode ter várias previews abertas ao mesmo tempo
-5. **Preferências**: As preferências são guardadas por ficheiro, não globalmente
+1. **Quick Shortcuts**: Use `Ctrl+Alt+P` to open (or click the status bar button) and `Ctrl+Shift+T` to toggle theme
+2. **Auto-Open**: Enable `autoOpen` if you frequently work with Markdown files
+3. **Custom Delay**: Adjust `updateDelay` according to your file sizes
+4. **Multiple Files**: You can have multiple previews open at the same time
+5. **Preferences**: Preferences are saved per file, not globally
 
-## 🆘 Suporte
+## 🆘 Support
 
-Se encontrar problemas ou tiver sugestões:
+If you encounter issues or have suggestions:
 
-1. Verifique este guia primeiro
-2. Verifique as configurações da extensão
-3. Reporte problemas ou sugestões no repositório do GitHub
+1. Check this guide first
+2. Check extension settings
+3. Report issues or suggestions in the GitHub repository
 
-## 📚 Recursos Adicionais
+## 📚 Additional Resources
 
-- [Documentação do VS Code](https://code.visualstudio.com/docs)
-- [Guia de Markdown](https://www.markdownguide.org/)
+- [VS Code Documentation](https://code.visualstudio.com/docs)
+- [Markdown Guide](https://www.markdownguide.org/)
 - [GitHub Markdown CSS](https://github.com/sindresorhus/github-markdown-css)
 
 ---
 
-**Desfrute da extensão GitHub README Viewer!** 🎉
-
+**Enjoy the GitHub Style Markdown Preview extension!** 🎉

@@ -7,49 +7,50 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [0.0.3] - 2025-11-10
 
 ### Changed
-- ⌨️ Atalho de teclado padrão alterado de `Alt+R` para `Ctrl+Alt+P` (Windows/Linux) ou `Cmd+Opt+P` (Mac)
-- 📝 Atualizada documentação para refletir as novas funcionalidades
+- ⌨️ Default keyboard shortcut changed from `Alt+R` to `Ctrl+Alt+P` (Windows/Linux) or `Cmd+Opt+P` (Mac)
+- 📝 Updated documentation to reflect new features
 
 ### Added
-- 📊 Botão na barra de status para abrir a preview
-  - Aparece automaticamente quando um ficheiro Markdown está aberto
-  - Localizado no canto inferior direito da barra de status
-  - Tooltip mostra o atalho de teclado: "Open Markdown Preview (Ctrl+Alt+P)"
+- 📊 Status bar button to open preview
+  - Appears automatically when a Markdown file is open
+  - Located in the bottom right corner of the status bar
+  - Tooltip shows keyboard shortcut: "Open Markdown Preview (Ctrl+Alt+P)"
 
 ### Fixed
-- 🔧 Melhorada validação de ficheiros suportados para aceitar apenas ficheiros `.md` 
-- 📝 Mensagens de erro mais informativas para debug
+- 🔧 Improved validation of supported files to accept only `.md` files
+- 📝 More informative error messages for debugging
+- Shortcut keybinding was not working in VS Code
 
 ## [0.0.2] - 2025-11-10
 
 ### Added
-- 🎨 Ícone da extensão adicionado ao marketplace
+- 🎨 Extension icon added to marketplace
 
 ## [0.0.1] - 2025-11-10
 
 ### Added
-- 🎨 Preview estilo GitHub para ficheiros Markdown
-- 🌓 Suporte para temas dark e light com toggle
-- 🔄 Atualização automática em tempo real enquanto edita
-- 💾 Preferências de tema guardadas por ficheiro
-- 🚀 Auto-open opcional quando abre ficheiros Markdown
-- 🖥️ Preview no browser externo com atualização automática
-- 📁 Suporte para múltiplos ficheiros simultaneamente
-- 🎯 Proteção de coluna de preview (opcional)
-- ⚙️ Configurações personalizáveis:
-  - `autoOpen`: Abrir preview automaticamente
-  - `updateDelay`: Delay para atualizações (debouncing)
-  - `supportedFiles`: Padrões de ficheiros suportados
-  - `protectPreviewColumn`: Proteger coluna de preview
-  - `openInBrowser`: Mostrar botão para abrir no browser
-  - `maxWidth`: Largura máxima do conteúdo (padrão: 980px)
-  - `enableEmoji`: Renderização de emojis (:smile:, :rocket:, etc.)
-  - `enableBreaks`: Quebras de linha simples como HTML
-  - `closeOnFileClose`: Fechar preview quando ficheiro fecha
-  - `focusEditorAfterOpen`: Focar editor após abrir preview
-- ⌨️ Atalho de teclado padrão: `Alt+R` (personalizável) - **Alterado para `Ctrl+Alt+P` na versão 0.0.3**
-- 🎨 Botão de toggle de tema na preview
-- 🌐 Botão "Web" para abrir no browser (se ativado)
-- 📝 Suporte completo para GitHub Flavored Markdown
-- 😄 Suporte para emojis GitHub (markdown-it-emoji)
-- 🎨 CSS estilo GitHub (github-markdown-css)
+- 🎨 GitHub-style preview for Markdown files
+- 🌓 Dark and light theme support with toggle
+- 🔄 Real-time automatic updates while editing
+- 💾 Theme preferences saved per file
+- 🚀 Optional auto-open when opening Markdown files
+- 🖥️ External browser preview with automatic updates
+- 📁 Support for multiple files simultaneously
+- 🎯 Preview column protection (optional)
+- ⚙️ Customizable settings:
+  - `autoOpen`: Automatically open preview
+  - `updateDelay`: Delay for updates (debouncing)
+  - `supportedFiles`: Supported file patterns
+  - `protectPreviewColumn`: Protect preview column
+  - `openInBrowser`: Show button to open in browser
+  - `maxWidth`: Maximum content width (default: 980px)
+  - `enableEmoji`: Emoji rendering (:smile:, :rocket:, etc.)
+  - `enableBreaks`: Simple line breaks as HTML
+  - `closeOnFileClose`: Close preview when file closes
+  - `focusEditorAfterOpen`: Focus editor after opening preview
+- ⌨️ Default keyboard shortcut: `Alt+R` (customizable) - **Changed to `Ctrl+Alt+P` in version 0.0.3**
+- 🎨 Theme toggle button in preview
+- 🌐 "Web" button to open in browser (if enabled)
+- 📝 Full support for GitHub Flavored Markdown
+- 😄 Support for GitHub emojis (markdown-it-emoji)
+- 🎨 GitHub-style CSS (github-markdown-css)
