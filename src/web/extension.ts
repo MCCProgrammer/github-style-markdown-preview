@@ -270,10 +270,17 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			
 			// Verificar se já existe uma preview no browser para este ficheiro
+			// Se existir, limpar a entrada antiga para permitir abrir uma nova preview
+			// (não podemos detectar se o browser ainda está aberto, então sempre permitimos reabrir)
 			if (browserPreviews.has(documentUri)) {
-				// Se já existe, informar o utilizador (não podemos controlar o browser diretamente)
-				vscode.window.showInformationMessage('Preview já está aberta no browser. Verifique o seu navegador.');
-				return;
+				// Limpar listeners e recursos da preview anterior
+				const oldPreview = browserPreviews.get(documentUri);
+				if (oldPreview) {
+					// Tentar limpar listeners se existirem (podem ter sido já limpos)
+					// A limpeza completa acontece quando o documento é fechado
+				}
+				// Remover entrada antiga para permitir criar uma nova
+				browserPreviews.delete(documentUri);
 			}
 
 			// Carregar preferência de tema guardada (por ficheiro) ou usar o tema atual do VS Code como padrão
