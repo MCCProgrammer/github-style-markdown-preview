@@ -578,6 +578,7 @@ export function activate(context: vscode.ExtensionContext) {
 			// Carregar configurações para markdown-it
 			const enableEmoji = config.get<boolean>('enableEmoji', true);
 			const enableBreaks = config.get<boolean>('enableBreaks', false);
+			const enableMath = config.get<boolean>('enableMath', false);
 			const maxWidthConfig = config.get<number | string>('maxWidth', 980);
 			// Garantir que maxWidth nunca seja 0, usar 980 como padrão
 			const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
@@ -595,6 +596,10 @@ export function activate(context: vscode.ExtensionContext) {
 				// Suporta :smile:, :rocket:, :heart:, e todos os outros emojis GitHub
 				md.use(emoji);
 			}
+			
+			// Adicionar suporte para Math (LaTeX) se ativado
+			// O processamento de Math será feito no lado do cliente (webview) usando KaTeX
+			// porque markdown-it não processa Math nativamente e precisamos de KaTeX no browser
 
 			// Extrair nome do ficheiro para o título do painel (ex: "README.md Preview")
 			const fileName = document.fileName.split(/[/\\]/).pop() || 'README.md';
@@ -687,15 +692,17 @@ export function activate(context: vscode.ExtensionContext) {
 					vscode.Uri.joinPath(context.extensionUri, 'node_modules', 'github-markdown-css', cssFile)
 				);
 
-				// Verificar se a configuração openInBrowser está ativa para mostrar o botão Web
+				// Verificar configurações para botões e funcionalidades
 				const currentConfig = vscode.workspace.getConfiguration('github-style-markdown-preview');
 				const openInBrowser = currentConfig.get<boolean>('openInBrowser', false);
+				const enableExport = currentConfig.get<boolean>('enableExport', false);
+				const enableMath = currentConfig.get<boolean>('enableMath', false);
 				const maxWidthConfig = currentConfig.get<number | string>('maxWidth', 980);
 				// Garantir que maxWidth nunca seja 0, usar 980 como padrão
 				const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 				
 				// Gerar e definir conteúdo HTML para o webview
-				panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode, openInBrowser, maxWidth);
+				panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode, openInBrowser, enableExport, enableMath, maxWidth, documentUri);
 			};
 
 			// ========================================================================
@@ -785,20 +792,146 @@ export function activate(context: vscode.ExtensionContext) {
 			(panel as any).openInBrowser = openInBrowserAndClose;
 
 			// ========================================================================
+			// FUNCIONALIDADE DE EXPORT
+			// ========================================================================
+			
+			/**
+			 * Exporta a preview como HTML.
+			 * Permite ao utilizador escolher o local e nome do ficheiro.
+			 */
+			const exportPreview = async () => {
+				try {
+					const currentDoc = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === documentUri);
+					if (!currentDoc) {
+						vscode.window.showErrorMessage('Document not found for export');
+						return;
+					}
+
+					// Obter configurações para recriar o renderizador
+					const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
+					const enableEmoji = config.get<boolean>('enableEmoji', true);
+					const enableBreaks = config.get<boolean>('enableBreaks', false);
+					
+					// Criar renderizador Markdown com as mesmas configurações
+					const exportMd = new MarkdownIt({
+						breaks: enableBreaks,
+						html: false,
+						linkify: true,
+					});
+					
+					// Adicionar suporte para emojis se ativado
+					if (enableEmoji) {
+						exportMd.use(emoji);
+					}
+
+					// Obter conteúdo renderizado
+					const content = currentDoc.getText();
+					const rendered = exportMd.render(content);
+					
+					// Selecionar ficheiro CSS baseado no tema
+					const cssFile = isDarkMode ? 'github-markdown-dark.css' : 'github-markdown-light.css';
+					const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
+					
+					// Calcular max-width
+					const maxWidthConfig = config.get<number | string>('maxWidth', 980);
+					const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
+					const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
+						? 'auto' 
+						: typeof maxWidth === 'number' 
+							? `${maxWidth}px` 
+							: '980px';
+					
+					// Verificar se Math está ativado para incluir KaTeX
+					const enableMath = config.get<boolean>('enableMath', false);
+					const katexCss = enableMath ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">' : '';
+					const katexJs = enableMath ? '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>' : '';
+					const katexRenderScript = enableMath ? `
+					<script>
+						document.addEventListener("DOMContentLoaded", function() {
+							renderMathInElement(document.body, {
+								delimiters: [
+									{left: "$$", right: "$$", display: true},
+									{left: "\\[", right: "\\]", display: true},
+									{left: "$", right: "$", display: false},
+									{left: "\\(", right: "\\)", display: false}
+								]
+							});
+						});
+					</script>` : '';
+					
+					// Gerar HTML completo
+					const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="${cssUrl}">
+	${katexCss}
+	<title>Markdown Export</title>
+	<style>
+		body {
+			background-color: ${isDarkMode ? '#0d1117' : '#ffffff'};
+			color: ${isDarkMode ? '#c9d1d9' : '#24292f'};
+			padding: 0;
+			margin: 0;
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+		}
+		.markdown-body {
+			padding: 2rem;
+			max-width: ${maxWidthCss};
+			margin: 0 auto;
+		}
+	</style>
+</head>
+<body>
+	<article class="markdown-body">${rendered}</article>
+	${katexJs}
+	${katexRenderScript}
+</body>
+</html>`;
+
+					// Pedir ao utilizador para escolher o local e nome do ficheiro
+					const fileName = currentDoc.fileName.split(/[/\\]/).pop()?.replace(/\.md$/i, '') || 'export';
+					const uri = await vscode.window.showSaveDialog({
+						defaultUri: vscode.Uri.file(`${fileName}.html`),
+						filters: {
+							'HTML': ['html']
+						},
+						saveLabel: 'Export'
+					});
+
+					if (uri) {
+						// Escrever ficheiro
+						const encoder = new TextEncoder();
+						await vscode.workspace.fs.writeFile(uri, encoder.encode(htmlContent));
+						vscode.window.showInformationMessage(`Preview exported to ${uri.fsPath}`);
+					}
+				} catch (error) {
+					vscode.window.showErrorMessage(`Error exporting preview: ${error}`);
+				}
+			};
+
+			// Guardar função no contexto do painel para acesso externo
+			(panel as any).exportPreview = exportPreview;
+
+			// ========================================================================
 			// HANDLING DE MENSAGENS DO WEBVIEW
 			// ========================================================================
 			
 			/**
 			 * Lida com mensagens do webview (do JavaScript na preview).
-			 * Suporta dois comandos:
+			 * Suporta três comandos:
 			 * - 'toggleTheme': Alterna entre tema dark e light
 			 * - 'openInBrowser': Abre preview no browser externo e fecha painel do IDE
+			 * - 'exportPreview': Exporta a preview como HTML
 			 */
 			panel.webview.onDidReceiveMessage(async (msg) => {
 				if (msg.command === 'toggleTheme') {
 					await toggleTheme();
 				} else if (msg.command === 'openInBrowser') {
 					await openInBrowserAndClose();
+				} else if (msg.command === 'exportPreview') {
+					await exportPreview();
 				}
 			});
 
@@ -1313,7 +1446,7 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
  * @param showWebButton - true para mostrar botão "Web" (abre preview no browser)
  * @returns String HTML completa para o painel webview
  */
-function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean, showWebButton: boolean = false, maxWidth: number | string = 980): string {
+function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean, showWebButton: boolean = false, enableExport: boolean = false, enableMath: boolean = false, maxWidth: number | string = 980, documentUri: string = ''): string {
 	// Calcular max-width CSS
 	const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
 		? 'auto' 
@@ -1326,6 +1459,38 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 	
 	// Texto do botão baseado no tema atual (mostra opção de tema oposto)
 	const buttonText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+	
+	// Calcular posições dos botões dinamicamente
+	let buttonRight = 10;
+	const buttons = [];
+	if (showWebButton) {
+		buttons.push(`<button id="web" class="web-button" title="Open preview in browser">🌐 Web</button>`);
+		buttonRight += 140;
+	}
+	buttons.push(`<button id="toggle" title="Toggle between Dark and Light mode (Ctrl+Shift+T / Alt+T)">${buttonText}</button>`);
+	if (enableExport) {
+		buttons.push(`<button id="export" class="export-button" title="Export preview as HTML">💾 Export</button>`);
+	}
+	
+	// Incluir KaTeX se Math estiver ativado
+	const katexCss = enableMath ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">' : '';
+	const katexJs = enableMath ? '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>' : '';
+	const katexRenderScript = enableMath ? `
+		<script>
+			document.addEventListener("DOMContentLoaded", function() {
+				if (typeof renderMathInElement !== 'undefined') {
+					renderMathInElement(document.getElementById('content'), {
+						delimiters: [
+							{left: "$$", right: "$$", display: true},
+							{left: "\\\\[", right: "\\\\]", display: true},
+							{left: "$", right: "$", display: false},
+							{left: "\\\\(", right: "\\\\)", display: false}
+						],
+						throwOnError: false
+					});
+				}
+			});
+		</script>` : '';
 	
 	// Ajustes CSS específicos do tema usando variáveis de tema do VS Code
 	// Isto garante que a preview corresponde ao tema atual do VS Code
@@ -1352,6 +1517,7 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="${cssUri}">
+		${katexCss}
 		<title>Markdown Preview</title>
 		<style>
 			body {
@@ -1379,22 +1545,25 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 				transform: translateY(-1px);
 				box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 			}
-		button:active {
-			transform: translateY(0);
-		}
-		.web-button {
-			right: 140px;
-			margin-right: 8px;
-		}
-		#toggle {
-			margin-right: 0;
-		}
-		${themeAdjustments}
+			button:active {
+				transform: translateY(0);
+			}
+			.export-button {
+				top: auto;
+				bottom: 10px;
+				right: 10px;
+			}
+			.web-button {
+				right: ${buttonRight}px;
+			}
+			#toggle {
+				right: 10px;
+			}
+			${themeAdjustments}
 		</style>
 	</head>
 	<body>
-		<button id="toggle" title="Toggle between Dark and Light mode (Ctrl+Shift+T / Alt+T)">${buttonText}</button>
-		${showWebButton ? `<button id="web" class="web-button" title="Open preview in browser">🌐 Web</button>` : ''}
+		${buttons.join('\n\t\t')}
 		<div id="content">${content}</div>
 		<script>
 			const vscode = acquireVsCodeApi();
@@ -1410,7 +1579,17 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 				});
 			}
 			` : ''}
+			${enableExport ? `
+			const exportButton = document.getElementById('export');
+			if (exportButton) {
+				exportButton.addEventListener('click', () => {
+					vscode.postMessage({ command: 'exportPreview' });
+				});
+			}
+			` : ''}
 		</script>
+		${katexJs}
+		${katexRenderScript}
 	</body>
 	</html>
 	`;

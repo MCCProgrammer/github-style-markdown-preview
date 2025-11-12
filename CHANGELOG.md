@@ -4,6 +4,25 @@ All notable changes to the "GitHub Style Markdown Preview" extension will be doc
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.5] - 2025-11-12
+
+### Added
+- 📐 **Math Support**: Enable rendering of mathematical formulas with KaTeX (LaTeX/MathJax syntax)
+  - Supports inline math: `$formula$` or `\(formula\)`
+  - Supports display math: `$$formula$$` or `\[formula\]`
+  - Controlled by `enableMath` setting (default: `false`)
+  - Applies to IDE preview only
+- 💾 **Export Functionality**: Export preview as standalone HTML file
+  - Adds an "Export" button in the preview (when `enableExport` is enabled)
+  - Allows saving the rendered preview as a standalone HTML file
+  - Exported HTML includes all styling and supports Math formulas if enabled
+  - Controlled by `enableExport` setting (default: `false`)
+  - Applies to IDE preview only
+
+### Configuration
+- `enableMath`: Enable math formula rendering (default: `false`)
+- `enableExport`: Show export button in preview (default: `false`)
+
 ## [0.0.4] - 2025-11-11
 
 ### Fixed

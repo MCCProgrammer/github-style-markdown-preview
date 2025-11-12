@@ -229,6 +229,32 @@ Or for full width:
 }
 ```
 
+#### `github-style-markdown-preview.enableMath`
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Enables math formula rendering with KaTeX (LaTeX/MathJax syntax). Supports inline math: `$formula$` or `\(formula\)`, and display math: `$$formula$$` or `\[formula\]`. Applies to IDE preview only.
+- **Recommendation**: Enable if you need to render mathematical formulas in your Markdown documents
+
+**Example:**
+```json
+{
+  "github-style-markdown-preview.enableMath": true
+}
+```
+
+#### `github-style-markdown-preview.enableExport`
+- **Type**: `boolean`
+- **Default**: `false`
+- **Description**: Shows an "Export" button in the preview to save rendered preview as HTML file. The button appears in the **bottom right corner** of the preview. Applies to IDE preview only.
+- **Recommendation**: Enable if you want to export previews as standalone HTML files
+
+**Example:**
+```json
+{
+  "github-style-markdown-preview.enableExport": true
+}
+```
+
 ### Customize Keyboard Shortcut
 
 The default shortcut to open preview is `Ctrl+Alt+P` (or `Cmd+Opt+P` on Mac).
@@ -273,6 +299,20 @@ The default shortcut to open preview is `Ctrl+Alt+P` (or `Cmd+Opt+P` on Mac).
 - Temporary HTML file created in workspace `.vscode` folder
 - Automatic cleanup when file is closed
 - **Note**: Browser preview doesn't have dark/light mode toggle button - theme is set at opening time based on saved preference
+
+### ✅ Math Formula Support
+- Render mathematical formulas with KaTeX (LaTeX/MathJax syntax)
+- Supports inline math: `$formula$` or `\(formula\)`
+- Supports display math: `$$formula$$` or `\[formula\]`
+- Controlled by `enableMath` setting (default: `false`)
+- Applies to IDE preview only
+
+### ✅ Export Functionality
+- Export preview as standalone HTML file
+- Adds an "💾 Export" button in the **bottom right corner** of the preview (when `enableExport` is enabled)
+- Exported HTML includes all styling and supports Math formulas if enabled
+- Controlled by `enableExport` setting (default: `false`)
+- Applies to IDE preview only
 
 ## 📝 Usage Examples
 

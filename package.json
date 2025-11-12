@@ -2,7 +2,7 @@
   "name": "github-style-markdown-preview",
   "displayName": "GitHub Style Markdown Preview",
   "description": "View Markdown files like on GitHub with dark/light mode toggle, auto-update, browser preview, and customizable settings.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "MCCProgrammer",
   "icon": "icon.png",
   "engines": {
@@ -137,6 +137,16 @@
           "type": "boolean",
           "default": true,
           "description": "Focus the editor after opening the preview, allowing you to continue editing (IDE preview only)."
+        },
+        "github-style-markdown-preview.enableMath": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable math formula rendering with KaTeX (LaTeX/MathJax syntax). Supports inline math: $formula$ or \\(formula\\), and display math: $$formula$$ or \\[formula\\]. Applies to IDE preview only."
+        },
+        "github-style-markdown-preview.enableExport": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show export button in preview to save rendered preview as HTML file. Applies to IDE preview only."
         },
         "github-style-markdown-preview.openPreviewKeybinding": {
           "type": "string",

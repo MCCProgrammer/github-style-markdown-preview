@@ -12,6 +12,8 @@ A Visual Studio Code extension that allows you to preview Markdown files in GitH
 - 🖥️ **Browser Preview**: Option to open preview in external browser
 - 📁 **Multiple Files**: Supports multiple previews open simultaneously
 - 🎯 **Column Protection**: Keeps preview in a dedicated column
+- 📐 **Math Support**: Render mathematical formulas with KaTeX (LaTeX/MathJax syntax)
+- 💾 **Export Functionality**: Export preview as standalone HTML file
 
 ## 🚀 Installation
 
@@ -35,6 +37,16 @@ There are three ways to open the preview:
 1. **Button in Preview**: Click the 🌙/☀️ button in the top right corner
 2. **Keyboard Shortcut**: Press `Ctrl+Shift+T` (Windows/Linux) or `Cmd+Shift+T` (Mac)
 3. **Command Palette**: Type "Toggle Preview Theme"
+
+### Export Preview
+
+When `enableExport` is enabled, an **💾 Export** button appears in the **bottom right corner** of the preview. Click it to save the rendered preview as a standalone HTML file.
+
+### Math Formulas
+
+When `enableMath` is enabled, the preview supports rendering mathematical formulas using KaTeX:
+- Inline math: `$formula$` or `\(formula\)`
+- Display math: `$$formula$$` or `\[formula\]`
 
 ## ⚙️ Settings
 
@@ -144,6 +156,28 @@ Converts single line breaks to HTML line breaks (similar to GitHub behavior). Ap
 ```json
 {
   "github-style-markdown-preview.enableBreaks": true
+}
+```
+
+### `github-style-markdown-preview.enableMath`
+Enables math formula rendering with KaTeX (LaTeX/MathJax syntax). Supports inline math: `$formula$` or `\(formula\)`, and display math: `$$formula$$` or `\[formula\]`. Applies to IDE preview only.
+
+**Default**: `false`
+
+```json
+{
+  "github-style-markdown-preview.enableMath": true
+}
+```
+
+### `github-style-markdown-preview.enableExport`
+Shows an "Export" button in the preview to save rendered preview as HTML file. The button appears in the **bottom right corner** of the preview. Applies to IDE preview only.
+
+**Default**: `false`
+
+```json
+{
+  "github-style-markdown-preview.enableExport": true
 }
 ```
 
