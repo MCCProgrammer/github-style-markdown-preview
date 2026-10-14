@@ -2,8 +2,19 @@
   "name": "github-style-markdown-preview",
   "displayName": "GitHub Style Markdown Preview",
   "description": "View Markdown files like on GitHub with dark/light mode toggle, auto-update, browser preview, and customizable settings.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "publisher": "MCCProgrammer",
+  "author": {
+    "name": "MCCProgrammer",
+    "email": "contact@mccprogrammer.com"
+  },
+  "sponsor": {
+    "url": "https://ko-fi.com/mccprogrammer"
+  },
+  "bugs": {
+    "url": "https://github.com/MCCProgrammer/github-style-markdown-preview/issues"
+  },
+  "homepage": "https://github.com/MCCProgrammer/github-style-markdown-preview#readme",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.85.0"

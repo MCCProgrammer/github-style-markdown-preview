@@ -4,6 +4,12 @@ All notable changes to the "GitHub Style Markdown Preview" extension will be doc
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.7] - 2026-10-14
+
+### Added
+- Ko-fi support link (Sponsor button on the store page and in the README) and a contact email: contact@mccprogrammer.com.
+- Issues link on the store page.
+
 ## [0.0.6] - 2026-10-14
 
 ### Changed
