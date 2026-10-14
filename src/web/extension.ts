@@ -1,30 +1,30 @@
 import * as vscode from 'vscode';
 import MarkdownIt from 'markdown-it';
-// @ts-ignore - markdown-it-emoji não tem tipos TypeScript oficiais
+// @ts-ignore - markdown-it-emoji has no official TypeScript types
 import { full as emoji } from 'markdown-it-emoji';
 
 // ============================================================================
-// UTILITY FUNCTIONS - Funções auxiliares para gestão de estado e preferências
+// UTILITY FUNCTIONS - Helpers for state and preference management
 // ============================================================================
 
 /**
- * Gera uma chave única para armazenar a preferência de tema de um documento específico.
- * Cada ficheiro tem a sua própria preferência de tema (dark/light) guardada.
+ * Builds a unique key to store the theme preference of a specific document.
+ * Each file keeps its own theme preference (dark/light).
  * 
- * @param document - O documento para o qual gerar a chave
- * @returns Chave única no formato: "github-style-markdown-preview.theme-mode.{uri}"
+ * @param document - The document to build the key for
+ * @returns unique key in the format "github-style-markdown-preview.theme-mode.{uri}"
  */
 function getThemePreferenceKey(document: vscode.TextDocument): string {
 	return `github-style-markdown-preview.theme-mode.${document.uri.toString()}`;
 }
 
 /**
- * Guarda a preferência de tema (dark/light) para um documento específico.
- * A preferência é persistida no workspaceState e mantém-se entre sessões do VS Code.
+ * Saves the theme preference (dark/light) for a specific document.
+ * The preference is persisted in workspaceState and survives VS Code restarts.
  * 
- * @param context - Contexto da extensão para aceder ao workspaceState
- * @param document - O documento para o qual guardar a preferência
- * @param isDark - true para tema dark, false para tema light
+ * @param context - Extension context, used to access workspaceState
+ * @param document - The document to save the preference for
+ * @param isDark - true for the dark theme, false for the light theme
  */
 async function saveThemePreference(context: vscode.ExtensionContext, document: vscode.TextDocument, isDark: boolean): Promise<void> {
 	const key = getThemePreferenceKey(document);
@@ -32,12 +32,12 @@ async function saveThemePreference(context: vscode.ExtensionContext, document: v
 }
 
 /**
- * Carrega a preferência de tema guardada para um documento.
- * Se não existir preferência guardada, retorna null (será usado o tema padrão do VS Code).
+ * Loads the saved theme preference for a document.
+ * Returns null when there is no saved preference (the VS Code theme is used instead).
  * 
- * @param context - Contexto da extensão para aceder ao workspaceState
- * @param document - O documento para o qual carregar a preferência
- * @returns true para dark, false para light, ou null se não houver preferência guardada
+ * @param context - Extension context, used to access workspaceState
+ * @param document - The document to load the preference for
+ * @returns true for dark, false for light, or null when there is no saved preference
  */
 function loadThemePreference(context: vscode.ExtensionContext, document: vscode.TextDocument): boolean | null {
 	const key = getThemePreferenceKey(document);
@@ -46,24 +46,24 @@ function loadThemePreference(context: vscode.ExtensionContext, document: vscode.
 }
 
 /**
- * Gera uma chave única para rastrear se uma preview foi fechada manualmente pelo utilizador.
- * Isto previne que o auto-open reabra previews que o utilizador fechou explicitamente.
+ * Builds a unique key to track whether the user closed a preview manually.
+ * This stops auto-open from reopening previews the user explicitly closed.
  * 
- * @param document - O documento para o qual gerar a chave
- * @returns Chave única no formato: "github-style-markdown-preview.preview-closed.{uri}"
+ * @param document - The document to build the key for
+ * @returns unique key in the format "github-style-markdown-preview.preview-closed.{uri}"
  */
 function getPreviewClosedKey(document: vscode.TextDocument): string {
 	return `github-style-markdown-preview.preview-closed.${document.uri.toString()}`;
 }
 
 /**
- * Guarda o estado de fechamento manual de uma preview.
- * Quando o utilizador fecha manualmente uma preview, este estado é guardado para
- * prevenir que o auto-open a reabra até que o ficheiro seja fechado e reaberto.
+ * Saves whether a preview was closed manually.
+ * When the user closes a preview by hand, this state is saved so that
+ * auto-open doesn't reopen it until the file is closed and opened again.
  * 
- * @param context - Contexto da extensão para aceder ao workspaceState
- * @param document - O documento para o qual guardar o estado
- * @param closed - true se foi fechada manualmente, false para permitir auto-open
+ * @param context - Extension context, used to access workspaceState
+ * @param document - The document to save the state for
+ * @param closed - true if it was closed manually, false to allow auto-open
  */
 async function setPreviewClosed(context: vscode.ExtensionContext, document: vscode.TextDocument, closed: boolean): Promise<void> {
 	const key = getPreviewClosedKey(document);
@@ -71,12 +71,12 @@ async function setPreviewClosed(context: vscode.ExtensionContext, document: vsco
 }
 
 /**
- * Verifica se uma preview foi fechada manualmente para um documento.
- * Usado pela funcionalidade auto-open para respeitar as ações do utilizador.
+ * Checks whether the preview of a document was closed manually.
+ * Used by auto-open to respect the user's actions.
  * 
- * @param context - Contexto da extensão para aceder ao workspaceState
- * @param document - O documento para verificar
- * @returns true se foi fechada manualmente, false caso contrário
+ * @param context - Extension context, used to access workspaceState
+ * @param document - The document to check
+ * @returns true if it was closed manually, false otherwise
  */
 function isPreviewClosed(context: vscode.ExtensionContext, document: vscode.TextDocument): boolean {
 	const key = getPreviewClosedKey(document);
@@ -84,41 +84,41 @@ function isPreviewClosed(context: vscode.ExtensionContext, document: vscode.Text
 }
 
 /**
- * Verifica se um documento é suportado pela extensão.
- * Um documento é suportado se:
- * 1. Tem o languageId 'markdown'
- * 2. O nome do ficheiro corresponde a um dos padrões configurados (ex: *.md, README*)
+ * Checks whether a document is supported by the extension.
+ * A document is supported if:
+ * 1. Its languageId is 'markdown'
+ * 2. Its file name matches one of the configured patterns (e.g. *.md, README*)
  * 
- * Os padrões são convertidos de glob para regex para fazer a correspondência:
- * - ** → .* (qualquer caracteres incluindo separadores de caminho)
- * - *  → [^/]* (qualquer caracteres exceto separadores de caminho)
- * - ?  → . (um único caracter)
+ * Patterns are converted from glob to regex:
+ * - ** → .* (any characters, including path separators)
+ * - *  → [^/]* (any characters except path separators)
+ * - ?  → . (a single character)
  * 
- * @param document - O documento a verificar
- * @returns true se o documento é suportado, false caso contrário
+ * @param document - The document to check
+ * @returns true if the document is supported, false otherwise
  */
 function isFileSupported(document: vscode.TextDocument): boolean {
 	const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 	const supportedPatterns = config.get<string[]>('supportedFiles', ['*.md']);
 	
-	// Extrair apenas o nome do ficheiro (sem o caminho)
-	// Usar path separators tanto para Windows (\\) como Unix (/)
+	// Keep only the file name (without the path)
+	// Split on both Windows (\\) and Unix (/) path separators
 	const fileName = document.fileName.split(/[/\\]/).pop() || '';
 	const fsPath = document.uri.fsPath.split(/[/\\]/).pop() || '';
 	const testFileName = fileName || fsPath;
 	
-	// Verificar se o ficheiro corresponde aos padrões configurados
+	// Check whether the file matches the configured patterns
 	const matchesPattern = supportedPatterns.some(pattern => {
-		// Caso especial: padrão "*.md" - aceitar apenas ficheiros que terminam exatamente com .md
-		// Isto garante que readme.md é aceite, mas readme.ola, readme.me, etc. não são
+		// Special case: the "*.md" pattern only accepts files that end exactly in .md
+		// So readme.md is accepted, but readme.ola, readme.me, etc. are not
 		if (pattern === '*.md') {
-			// Verificar se o ficheiro termina exatamente com .md (case-insensitive)
-			// Usar regex para garantir que é .md e não .md.alguma-coisa
+			// Check that the file ends exactly in .md (case-insensitive)
+			// The regex makes sure it is .md and not .md.something
 			return /\.md$/i.test(testFileName);
 		}
 		
-		// Para outros padrões (ex: "README*", "*.markdown"), converter glob para regex
-		// Substituir wildcards por placeholders temporários para não serem escapados
+		// Other patterns (e.g. "README*", "*.markdown"): convert the glob to a regex
+		// Replace wildcards with temporary placeholders so they aren't escaped
 		const placeholders = {
 			doubleStar: '__PLACEHOLDER_DOUBLESTAR__',
 			singleStar: '__PLACEHOLDER_STAR__',
@@ -127,49 +127,49 @@ function isFileSupported(document: vscode.TextDocument): boolean {
 		
 		let regexPattern = pattern;
 		
-		// Processar ** primeiro (match qualquer coisa incluindo path separators)
+		// Handle ** first (matches anything, including path separators)
 		regexPattern = regexPattern.replace(/\*\*/g, placeholders.doubleStar);
 		
-		// Processar * (match qualquer coisa exceto path separators)
+		// Handle * (matches anything except path separators)
 		regexPattern = regexPattern.replace(/\*/g, placeholders.singleStar);
 		
-		// Processar ? (match um único caracter)
+		// Handle ? (matches a single character)
 		regexPattern = regexPattern.replace(/\?/g, placeholders.question);
 		
-		// Escapar caracteres especiais do regex (exceto os placeholders)
-		// Precisamos escapar: . + ^ $ { } ( ) | [ ] \
+		// Escape regex special characters (except the placeholders)
+		// Characters to escape: . + ^ $ { } ( ) | [ ] \
 		regexPattern = regexPattern.replace(/[.+^${}()|[\]\\]/g, '\\$&');
 		
-		// Restaurar wildcards como expressões regex
-		// Como estamos a testar apenas o nome do ficheiro (sem path), * e ** ambos usam .*
+		// Turn the placeholders back into regex wildcards
+		// Only the file name (no path) is tested, so * and ** both become .*
 		regexPattern = regexPattern
 			.replace(new RegExp(placeholders.doubleStar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '.*')
 			.replace(new RegExp(placeholders.singleStar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '.*')
 			.replace(new RegExp(placeholders.question.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '.');
 		
-		// Criar regex case-insensitive
+		// Case-insensitive regex
 		const regex = new RegExp(`^${regexPattern}$`, 'i');
 		
-		// Testar o nome do ficheiro (sem caminho)
+		// Test the file name (without the path)
 		return regex.test(testFileName);
 	});
 	
-	// Se o ficheiro corresponde ao padrão, verificar se é Markdown
-	// IMPORTANTE: Para o padrão "*.md", garantimos que apenas ficheiros .md são aceites
+	// If the file matches a pattern, check that it is Markdown
+	// IMPORTANT: with the "*.md" pattern, only .md files are accepted
 	if (matchesPattern) {
-		// Para padrões que terminam com .md (como "*.md"), verificar se o ficheiro realmente termina com .md
-		// Isto garante que readme.md é aceite, mas readme.ola não é
+		// For patterns ending in .md (like "*.md"), check that the file really ends in .md
+		// So readme.md is accepted, but readme.ola is not
 		const hasMdExtension = /\.md$/i.test(testFileName);
 		const patternEndsWithMd = supportedPatterns.some(p => p.endsWith('.md'));
 		
-		// Se o padrão especifica .md, o ficheiro DEVE terminar com .md
+		// If a pattern requires .md, the file MUST end in .md
 		if (patternEndsWithMd && !hasMdExtension) {
 			return false;
 		}
 		
-		// Aceitar se languageId é 'markdown' ou se o ficheiro tem extensão .md
-		// Isto permite que ficheiros .md sejam suportados mesmo que o VS Code
-		// não os reconheça automaticamente como Markdown
+		// Accept it if the languageId is 'markdown' or the file has the .md extension
+		// This supports .md files even when VS Code doesn't
+		// recognise them as Markdown automatically
 		const isMarkdownLanguage = document.languageId === 'markdown';
 		
 		return isMarkdownLanguage || hasMdExtension;
@@ -179,57 +179,57 @@ function isFileSupported(document: vscode.TextDocument): boolean {
 }
 
 // ============================================================================
-// EXTENSION ACTIVATION - Função principal de ativação da extensão
+// EXTENSION ACTIVATION - Main activation function
 // ============================================================================
 
 /**
- * Função principal de ativação da extensão.
- * É chamada quando o VS Code ativa a extensão.
- * Configura todos os handlers de comandos, listeners de eventos e opções de configuração.
+ * Main activation function of the extension.
+ * Called when VS Code activates the extension.
+ * Registers every command handler, event listener and configuration option.
  * 
- * @param context - Contexto da extensão fornecido pelo VS Code
+ * @param context - Extension context provided by VS Code
  */
 export function activate(context: vscode.ExtensionContext) {
 	try {
 	console.log('GitHub Style Markdown Preview is active!');
 
 		// ========================================================================
-		// ESTRUTURAS DE DADOS PARA GESTÃO DE PREVIEWS
+		// DATA STRUCTURES FOR MANAGING PREVIEWS
 		// ========================================================================
 		
 		/**
-		 * Map de painéis webview ativos, indexados por URI do documento.
-		 * Usado para rastrear quais documentos têm previews abertas e prevenir duplicados.
-		 * Chave: URI do documento como string
-		 * Valor: instância do painel webview
+		 * Active webview panels, indexed by document URI.
+		 * Used to track which documents have an open preview and to avoid duplicates.
+		 * Key: document URI as a string
+		 * Value: the webview panel
 		 */
 		const activePanels = new Map<string, vscode.WebviewPanel>();
 		
 		/**
-		 * Map de colunas de visualização para cada preview.
-		 * Rastreia em que coluna cada preview está exibida (para funcionalidade protectPreviewColumn).
-		 * Chave: URI do documento como string
-		 * Valor: coluna de visualização onde a preview está exibida
+		 * View column of each preview.
+		 * Tracks the column each preview is shown in (for the protectPreviewColumn feature).
+		 * Key: document URI as a string
+		 * Value: view column where the preview is shown
 		 */
 		const previewViewColumns = new Map<string, vscode.ViewColumn>();
 		
 		/**
-		 * Map de documentos associados a cada preview.
-		 * Armazena referências aos documentos originais para focar após abrir a preview.
-		 * Chave: URI do documento como string
-		 * Valor: instância do documento de texto
+		 * Document behind each preview.
+		 * Keeps references to the source documents to focus them after opening the preview.
+		 * Key: document URI as a string
+		 * Value: the text document
 		 */
 		const previewDocuments = new Map<string, vscode.TextDocument>();
 
 		/**
-		 * Map de dados de previews no browser (para modo browser externo).
-		 * Armazena metadados sobre previews abertas em browsers externos, incluindo:
-		 * - Referência ao documento
-		 * - Modo de tema atual (dark/light)
-		 * - Último conteúdo conhecido (para detecção de mudanças)
-		 * - Timestamp da última atualização
-		 * Chave: URI do documento como string
-		 * Valor: objeto com metadados da preview no browser
+		 * Previews open in an external browser.
+		 * Keeps metadata about each browser preview:
+		 * - The document
+		 * - The current theme (dark/light)
+		 * - The last known content (to detect changes)
+		 * - Timestamp of the last update
+		 * Key: document URI as a string
+		 * Value: browser preview metadata
 		 */
 		const browserPreviews = new Map<string, { 
 			document: vscode.TextDocument; 
@@ -239,87 +239,87 @@ export function activate(context: vscode.ExtensionContext) {
 		}>();
 
 		// ========================================================================
-		// FUNCIONALIDADE DE PREVIEW NO BROWSER (BROWSER EXTERNO)
+		// BROWSER PREVIEW (EXTERNAL BROWSER)
 		// ========================================================================
 		
 		/**
-		 * Abre uma preview de Markdown num browser externo.
+		 * Opens a Markdown preview in an external browser.
 		 * 
-		 * Esta função:
-		 * 1. Cria um ficheiro HTML temporário na pasta .vscode do workspace
-		 * 2. Renderiza o conteúdo Markdown usando markdown-it
-		 * 3. Aplica CSS estilo GitHub (tema dark ou light)
-		 * 4. Abre o ficheiro HTML no browser padrão
-		 * 5. Configura listeners de auto-atualização para refrescar o HTML quando o ficheiro muda
+		 * This function:
+		 * 1. Creates a temporary HTML file in the extension's storage
+		 * 2. Renders the Markdown with markdown-it
+		 * 3. Applies the GitHub CSS (dark or light theme)
+		 * 4. Opens the HTML file in the default browser
+		 * 5. Sets up listeners that rewrite the HTML when the file changes
 		 * 
-		 * Para protocolo file:// (ficheiros locais), as atualizações são detetadas através
-		 * de recarregamentos periódicos da página quando o utilizador está inativo.
-		 * O ficheiro HTML é atualizado quando o ficheiro é guardado (Ctrl+S).
+		 * For file:// URLs (local files), the page picks up changes by reloading
+		 * itself periodically.
+		 * The HTML file is rewritten when the document changes or is saved (Ctrl+S).
 		 * 
-		 * @param document - O documento markdown para fazer preview
-		 * @param context - Contexto da extensão
-		 * @param updateDelay - Delay em milissegundos antes de atualizar preview após edição (para debouncing)
+		 * @param document - The Markdown document to preview
+		 * @param context - Extension context
+		 * @param updateDelay - Delay in milliseconds before updating the preview after an edit (debouncing)
 		 */
 		async function openPreviewInBrowser(document: vscode.TextDocument, context: vscode.ExtensionContext, updateDelay: number) {
 			const documentUri = document.uri.toString();
 			
-			// Fechar preview do IDE se estiver aberta (apenas um modo de preview de cada vez)
+			// Close the IDE preview if it is open (only one preview mode at a time)
 			const existingPanel = activePanels.get(documentUri);
 			if (existingPanel) {
 				existingPanel.dispose();
 			}
 			
-			// Verificar se já existe uma preview no browser para este ficheiro
-			// Se existir, limpar a entrada antiga para permitir abrir uma nova preview
-			// (não podemos detectar se o browser ainda está aberto, então sempre permitimos reabrir)
+			// Check whether there is already a browser preview for this file
+			// If there is, drop the old entry so a new preview can be opened
+			// (there is no way to know if the browser is still open, so reopening is always allowed)
 			if (browserPreviews.has(documentUri)) {
-				// Limpar listeners e recursos da preview anterior
+				// Clean up the listeners and resources of the previous preview
 				const oldPreview = browserPreviews.get(documentUri);
 				if (oldPreview) {
-					// Tentar limpar listeners se existirem (podem ter sido já limpos)
-					// A limpeza completa acontece quando o documento é fechado
+					// Listeners may already have been cleaned up
+					// Full clean-up happens when the document is closed
 				}
-				// Remover entrada antiga para permitir criar uma nova
+				// Remove the old entry so a new one can be created
 				browserPreviews.delete(documentUri);
 			}
 
-			// Carregar preferência de tema guardada (por ficheiro) ou usar o tema atual do VS Code como padrão
+			// Load the saved theme preference (per file), or default to the current VS Code theme
 			const savedThemePreference = loadThemePreference(context, document);
 			const vsCodeTheme = vscode.window.activeColorTheme;
 			const defaultIsDark = vsCodeTheme.kind === vscode.ColorThemeKind.Dark;
 			let isDarkMode = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
 
-			// Carregar configurações
+			// Load settings
 			const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 			const enableEmoji = config.get<boolean>('enableEmoji', true);
 			const enableBreaks = config.get<boolean>('enableBreaks', false);
 			const maxWidthConfig = config.get<number | string>('maxWidth', 980);
-			// Garantir que maxWidth nunca seja 0, usar 980 como padrão
+			// Make sure maxWidth is never 0 (default to 980)
 			const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 			
-			// Inicializar renderizador Markdown com configurações
+			// Create the Markdown renderer with these settings
 			const md = new MarkdownIt({
 				breaks: enableBreaks,
-				html: false, // Por segurança, não permitir HTML inline
-				linkify: true, // Converter URLs em links automaticamente
+				html: false, // For security, inline HTML is not allowed
+				linkify: true, // Turn URLs into links automatically
 			});
 			
-			// Adicionar suporte para emojis se ativado
+			// Add emoji support if enabled
 			if (enableEmoji) {
-				// Usar markdown-it-emoji (full) para renderizar todos os emojis disponíveis
-				// Suporta :smile:, :rocket:, :heart:, e todos os outros emojis GitHub
+				// markdown-it-emoji (full) renders every available emoji
+				// Supports :smile:, :rocket:, :heart: and all the other GitHub emoji
 				md.use(emoji);
 			}
 			
 			const encoder = new TextEncoder();
 			
 			/**
-			 * Atualiza o ficheiro HTML temporário com novo conteúdo e tema.
-			 * É chamada sempre que o documento muda ou é guardado.
+			 * Rewrites the temporary HTML file with new content and theme.
+			 * Called whenever the document changes or is saved.
 			 * 
-			 * @param tempFile - URI do ficheiro HTML temporário
-			 * @param content - O conteúdo markdown para renderizar
-			 * @param darkMode - true para usar tema dark, false para tema light
+			 * @param tempFile - URI of the temporary HTML file
+			 * @param content - The Markdown content to render
+			 * @param darkMode - true for the dark theme, false for the light theme
 			 */
 			const updateHtmlFile = async (tempFile: vscode.Uri, content: string, darkMode: boolean) => {
 				const rendered = md.render(content);
@@ -331,32 +331,32 @@ export function activate(context: vscode.ExtensionContext) {
 			const content = document.getText();
 			
 			// ========================================================================
-			// ESTRATÉGIA DE CRIAÇÃO DE FICHEIRO TEMPORÁRIO
+			// TEMPORARY FILE STRATEGY
 			// ========================================================================
-			// Tentar criar ficheiro HTML no workspace, ou usar data URI como fallback
-			// Ficheiros no workspace permitem auto-atualizações via file system watching
-			// Data URIs são limitadas mas funcionam quando não há workspace aberto
+			// Create an HTML file on disk, or fall back to a data URI
+			// Files on disk can be updated automatically
+			// Data URIs are limited but work when no workspace is open
 			
 			let tempFile: vscode.Uri | undefined;
 			let useDataUri = false;
 			
-			// Estratégia 1: Criar ficheiro HTML temporário no storage da extensão (fora do workspace)
-			// Isto evita poluir o workspace com ficheiros temporários
+			// Strategy 1: temporary HTML file in the extension's storage (outside the workspace)
+			// This avoids filling the workspace with temporary files
 			try {
-				// Usar storageUri da extensão (fora do workspace)
+				// Use the extension's storageUri (outside the workspace)
 				const storageUri = context.storageUri || context.globalStorageUri;
 				if (storageUri) {
-					// Criar diretório de previews se não existir
+					// Create the previews folder if it doesn't exist
 					const previewDir = vscode.Uri.joinPath(storageUri, 'previews');
 					try {
 						await vscode.workspace.fs.createDirectory(previewDir);
 					} catch (error) {
-						// Diretório já existe ou erro - continuar de qualquer forma
+						// The folder already exists or failed - carry on anyway
 					}
-					// Nome único baseado em timestamp para evitar conflitos
+					// Unique timestamp-based name to avoid clashes
 					tempFile = vscode.Uri.joinPath(previewDir, `preview-${Date.now()}.html`);
 				} else {
-					// Fallback: usar workspace se storageUri não estiver disponível
+					// Fallback: use the workspace if storageUri isn't available
 					const workspaceFolders = vscode.workspace.workspaceFolders;
 					if (workspaceFolders && workspaceFolders.length > 0) {
 						const workspaceFolder = workspaceFolders[0];
@@ -365,12 +365,12 @@ export function activate(context: vscode.ExtensionContext) {
 						try {
 							await vscode.workspace.fs.createDirectory(vscodeDir);
 						} catch (error) {
-							// Diretório já existe ou erro - continuar de qualquer forma
+							// The folder already exists or failed - carry on anyway
 						}
 					}
 				}
 			} catch (error) {
-				// Se falhar, tentar usar workspace como fallback
+				// If that fails, fall back to the workspace
 				const workspaceFolders = vscode.workspace.workspaceFolders;
 				if (workspaceFolders && workspaceFolders.length > 0) {
 					const workspaceFolder = workspaceFolders[0];
@@ -379,18 +379,18 @@ export function activate(context: vscode.ExtensionContext) {
 					try {
 						await vscode.workspace.fs.createDirectory(vscodeDir);
 					} catch (err) {
-						// Ignorar erros
+						// Ignore errors
 					}
 				}
 			}
 			
 			if (!tempFile) {
-				// Estratégia 2: Usar data URI para ficheiros pequenos quando não há workspace aberto
-				// Data URIs têm limitações de tamanho (~2MB) e não suportam auto-atualizações bem
+				// Strategy 2: data URI for small files when no workspace is open
+				// Data URIs are limited in size (~2MB) and don't support automatic updates well
 				if (content.length < 2 * 1024 * 1024) {
 					useDataUri = true;
 				} else {
-					vscode.window.showErrorMessage('Sem workspace aberto. Por favor, abra um workspace para usar a preview no browser.');
+					vscode.window.showErrorMessage('No workspace open. Please open a workspace to use the browser preview.');
 					return;
 				}
 			}
@@ -398,16 +398,16 @@ export function activate(context: vscode.ExtensionContext) {
 			try {
 				if (useDataUri) {
 					// ========================================================================
-					// MODO DATA URI (Sem workspace disponível)
+					// DATA URI MODE (no workspace available)
 					// ========================================================================
-					// Usar data URI para abrir diretamente no browser
-					// Funcionalidade limitada: sem auto-atualizações, limite de tamanho ~2MB
+					// Open a data URI directly in the browser
+					// Limited: no automatic updates, ~2MB size limit
 					const rendered = md.render(content);
 					const htmlContent = getBrowserHtml(rendered, content, isDarkMode, documentUri, updateDelay, maxWidth);
 					const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(htmlContent)}`;
 					await vscode.env.openExternal(vscode.Uri.parse(dataUri));
 					
-					// Guardar dados da preview (mas não podemos atualizar data URI facilmente)
+					// Save the preview data (a data URI can't be updated easily)
 					browserPreviews.set(documentUri, {
 						document,
 						isDarkMode,
@@ -415,21 +415,21 @@ export function activate(context: vscode.ExtensionContext) {
 						lastUpdate: Date.now()
 					});
 					
-					vscode.window.showInformationMessage('Preview aberta no browser. Nota: Atualizações automáticas podem não funcionar com data URI. Considere abrir um workspace.');
+					vscode.window.showInformationMessage('Preview opened in the browser. Note: automatic updates may not work with a data URI. Consider opening a workspace.');
 					return;
 				}
 				
 				// ========================================================================
-				// MODO FICHEIRO WORKSPACE (Recomendado)
+				// WORKSPACE FILE MODE (recommended)
 				// ========================================================================
-				// Criar ficheiro HTML inicial
+				// Create the initial HTML file
 				await updateHtmlFile(tempFile!, content, isDarkMode);
 				
-				// Abrir o ficheiro HTML no browser padrão
-				// O VS Code converte automaticamente a URI para um caminho file://
+				// Open the HTML file in the default browser
+				// VS Code turns the URI into a file:// path automatically
 				await vscode.env.openExternal(tempFile!);
 				
-				// Guardar metadados da preview para rastreamento e atualizações
+				// Save the preview metadata for tracking and updates
 				browserPreviews.set(documentUri, {
 					document,
 					isDarkMode,
@@ -437,33 +437,33 @@ export function activate(context: vscode.ExtensionContext) {
 					lastUpdate: Date.now()
 				});
 
-				// Guardar referência ao ficheiro temporário para atualizações futuras
+				// Keep a reference to the temporary file for future updates
 				const savedTempFile = tempFile!;
 
 				// ========================================================================
-				// MECANISMO DE AUTO-ATUALIZAÇÃO PARA PREVIEW NO BROWSER
+				// AUTO-UPDATE FOR THE BROWSER PREVIEW
 				// ========================================================================
-				// Função de atualização com debounce para evitar escritas excessivas enquanto se digita
+				// Debounced update so the file isn't rewritten on every keystroke
 				let updateTimeout: ReturnType<typeof setTimeout> | undefined;
 				
 				/**
-				 * Agenda uma atualização do ficheiro HTML quando o documento muda.
-				 * Usa debouncing para evitar escrever no disco a cada tecla pressionada.
-				 * Se updateDelay for 0, as atualizações são instantâneas (sem debouncing).
+				 * Schedules an update of the HTML file when the document changes.
+				 * Debounced so the disk isn't written on every key press.
+				 * If updateDelay is 0, updates are instant (no debouncing).
 				 */
 				const scheduleUpdate = () => {
 					if (updateTimeout) {
 						clearTimeout(updateTimeout);
 					}
 					if (updateDelay > 0) {
-						// Atualização com debounce: aguarda que o utilizador pare de digitar
+						// Debounced update: wait until the user stops typing
 						updateTimeout = setTimeout(async () => {
 							const preview = browserPreviews.get(documentUri);
 							if (preview) {
 								const currentDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === documentUri);
 								if (currentDoc) {
 									const newContent = currentDoc.getText();
-									// Só atualizar se o conteúdo realmente mudou
+									// Only update if the content really changed
 									if (newContent !== preview.lastContent) {
 										preview.lastContent = newContent;
 										preview.lastUpdate = Date.now();
@@ -473,7 +473,7 @@ export function activate(context: vscode.ExtensionContext) {
 							}
 						}, updateDelay);
 					} else {
-						// Atualização instantânea: sem debouncing (pode causar problemas de performance com ficheiros grandes)
+						// Instant update: no debouncing (can be slow with large files)
 						(async () => {
 							const preview = browserPreviews.get(documentUri);
 							if (preview) {
@@ -488,18 +488,18 @@ export function activate(context: vscode.ExtensionContext) {
 								}
 							}
 						})().catch(() => {
-							// Ignorar erros silenciosamente
+							// Ignore errors silently
 						});
 					}
 				};
 
 				// ========================================================================
-				// LISTENERS DE EVENTOS PARA ATUALIZAÇÕES DA PREVIEW NO BROWSER
+				// EVENT LISTENERS FOR BROWSER PREVIEW UPDATES
 				// ========================================================================
 				
 				/**
-				 * Listener para mudanças no documento - agenda atualizações do ficheiro HTML.
-				 * Dispara sempre que o utilizador digita ou edita o ficheiro markdown.
+				 * Document change listener - schedules HTML file updates.
+				 * Fires whenever the user types in or edits the Markdown file.
 				 */
 				const changeSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
 					if (e.document.uri.toString() === documentUri) {
@@ -508,8 +508,8 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 
 				/**
-				 * Listener para eventos de fechamento de documento - limpa recursos da preview no browser.
-				 * Remove preview do map de rastreamento, dispõe listeners de eventos e apaga ficheiro HTML temporário.
+				 * Document close listener - cleans up the browser preview.
+				 * Removes the preview from the tracking map, disposes the listeners and deletes the temporary HTML file.
 				 */
 				const closeSubscription = vscode.workspace.onDidCloseTextDocument((doc) => {
 					if (doc.uri.toString() === documentUri) {
@@ -519,225 +519,225 @@ export function activate(context: vscode.ExtensionContext) {
 						if (updateTimeout) {
 							clearTimeout(updateTimeout);
 						}
-						// Tentar apagar o ficheiro HTML temporário (se foi criado)
+						// Try to delete the temporary HTML file (if one was created)
 						if (savedTempFile && !useDataUri) {
 							vscode.workspace.fs.delete(savedTempFile).then(() => {
-								// Ficheiro apagado com sucesso
+								// File deleted
 							}, () => {
-								// Ignorar erros de apagamento (ficheiro pode ter sido apagado manualmente)
+								// Ignore deletion errors (the file may have been deleted by hand)
 							});
 						}
 					}
 				});
 
-				// Registar subscriptions para limpeza quando a extensão desativar
+				// Register the subscriptions so they are cleaned up when the extension deactivates
 				context.subscriptions.push(changeSubscription, closeSubscription);
 			} catch (error) {
-				vscode.window.showErrorMessage(`Erro ao abrir preview no browser: ${error}`);
+				vscode.window.showErrorMessage(`Error opening the preview in the browser: ${error}`);
 			}
 		}
 
 		// ========================================================================
-		// FUNCIONALIDADE DE PREVIEW NO IDE (WEBVIEW PANEL)
+		// IDE PREVIEW (WEBVIEW PANEL)
 		// ========================================================================
 		
 		/**
-		 * Abre uma preview de Markdown no painel webview do VS Code (preview no IDE).
+		 * Opens a Markdown preview in a VS Code webview panel (IDE preview).
 		 * 
-		 * Esta função:
-		 * 1. Verifica se já existe uma preview aberta para este documento (se sim, apenas revela)
-		 * 2. Cria um novo painel webview com estilo GitHub
-		 * 3. Renderiza o conteúdo Markdown usando markdown-it
-		 * 4. Aplica o tema preferido do utilizador (dark/light) por ficheiro
-		 * 5. Configura listeners de auto-atualização para refrescar preview quando o ficheiro muda
-		 * 6. Lida com botões de toggle de tema e abertura no browser
+		 * This function:
+		 * 1. Checks whether this document already has a preview open (if so, just reveals it)
+		 * 2. Creates a new GitHub-style webview panel
+		 * 3. Renders the Markdown with markdown-it
+		 * 4. Applies the user's preferred theme (dark/light) for this file
+		 * 5. Sets up listeners that refresh the preview when the file changes
+		 * 6. Handles the theme toggle and open-in-browser buttons
 		 * 
-		 * A preview respeita a configuração protectPreviewColumn:
-		 * - Se ativada: preview abre na coluna 2 (coluna dedicada para previews)
-		 * - Se desativada: preview abre ao lado do editor (ViewColumn.Beside)
+		 * The preview honours the protectPreviewColumn setting:
+		 * - Enabled: the preview opens in column 2 (a column dedicated to previews)
+		 * - Disabled: the preview opens beside the editor (ViewColumn.Beside)
 		 * 
-		 * @param document - O documento markdown para fazer preview
+		 * @param document - The Markdown document to preview
 		 */
 		async function openPreview(document: vscode.TextDocument) {
 			const documentUri = document.uri.toString();
 
-			// Carregar configurações da extensão
+			// Load the extension settings
 			const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 			const updateDelay = config.get<number>('updateDelay', 300);
 			const protectPreviewColumn = config.get<boolean>('protectPreviewColumn', false);
 
-			// Verificar se já existe um painel aberto para este documento
-			// Se existir, apenas revelar e focar o editor (não criar duplicado)
+			// Check whether this document already has a panel open
+			// If it does, just reveal it and focus the editor (no duplicates)
 			const existingPanel = activePanels.get(documentUri);
 			if (existingPanel) {
 				existingPanel.reveal();
-				// Focar no editor do documento após revelar a preview
+				// Focus the document's editor after revealing the preview
 				const editor = await vscode.window.showTextDocument(document, { preview: false });
 				return;
 			}
 
-			// Carregar preferência de tema guardada para este ficheiro, ou usar o tema atual do VS Code como padrão
+			// Load the saved theme preference for this file, or default to the current VS Code theme
 			const savedThemePreference = loadThemePreference(context, document);
 			const vsCodeTheme = vscode.window.activeColorTheme;
 			const defaultIsDark = vsCodeTheme.kind === vscode.ColorThemeKind.Dark;
 			let isDarkMode: boolean = savedThemePreference !== null ? savedThemePreference : defaultIsDark;
 			
-			// Carregar configurações para markdown-it
+			// Load the markdown-it settings
 			const enableEmoji = config.get<boolean>('enableEmoji', true);
 			const enableBreaks = config.get<boolean>('enableBreaks', false);
 			const enableMath = config.get<boolean>('enableMath', false);
 			const maxWidthConfig = config.get<number | string>('maxWidth', 980);
-			// Garantir que maxWidth nunca seja 0, usar 980 como padrão
+			// Make sure maxWidth is never 0 (default to 980)
 			const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 			
-			// Inicializar renderizador Markdown com configurações
+			// Create the Markdown renderer with these settings
 			const md = new MarkdownIt({
 				breaks: enableBreaks,
-				html: false, // Por segurança, não permitir HTML inline
-				linkify: true, // Converter URLs em links automaticamente
+				html: false, // For security, inline HTML is not allowed
+				linkify: true, // Turn URLs into links automatically
 			});
 			
-			// Adicionar suporte para emojis se ativado
+			// Add emoji support if enabled
 			if (enableEmoji) {
-				// Usar markdown-it-emoji (full) para renderizar todos os emojis disponíveis
-				// Suporta :smile:, :rocket:, :heart:, e todos os outros emojis GitHub
+				// markdown-it-emoji (full) renders every available emoji
+				// Supports :smile:, :rocket:, :heart: and all the other GitHub emoji
 				md.use(emoji);
 			}
 			
-			// Adicionar suporte para Math (LaTeX) se ativado
-			// O processamento de Math será feito no lado do cliente (webview) usando KaTeX
-			// porque markdown-it não processa Math nativamente e precisamos de KaTeX no browser
+			// Math (LaTeX) support, if enabled
+			// Math is rendered on the client side (in the webview) with KaTeX,
+			// because markdown-it doesn't handle math natively
 
-			// Extrair nome do ficheiro para o título do painel (ex: "README.md Preview")
+			// File name for the panel title (e.g. "README.md Preview")
 			const fileName = document.fileName.split(/[/\\]/).pop() || 'README.md';
 			
-			// Determinar coluna de visualização baseada na configuração protectPreviewColumn
-			// Se proteção ativada, usar coluna 2 (coluna dedicada para previews)
-			// Caso contrário, abrir ao lado do editor (VS Code decide a melhor posição)
+			// Choose the view column from the protectPreviewColumn setting
+			// When protection is on, use column 2 (a column dedicated to previews)
+			// Otherwise open beside the editor (VS Code picks the best position)
 			const previewViewColumn = protectPreviewColumn ? vscode.ViewColumn.Two : vscode.ViewColumn.Beside;
 			
-			// Criar painel webview para a preview
+			// Create the webview panel for the preview
 			const panel = vscode.window.createWebviewPanel(
-				'githubReadmePreview', // ID do webview (usado em when clauses para menus/keybindings)
-				`${fileName} Preview`, // Título do painel
-				previewViewColumn,     // Onde abrir o painel
+				'githubReadmePreview', // Webview ID (used in when clauses for menus/keybindings)
+				`${fileName} Preview`, // Panel title
+				previewViewColumn,     // Where to open the panel
 				{
-					enableScripts: true,              // Permitir JavaScript no webview (necessário para toggle de tema)
-					retainContextWhenHidden: true,    // Manter estado do webview quando oculto (melhora performance)
+					enableScripts: true,              // Allow JavaScript in the webview (needed for the theme toggle)
+					retainContextWhenHidden: true,    // Keep the webview state while hidden (faster)
 				}
 			);
 
-			// Guardar painel e metadados nos maps para rastreamento
+			// Save the panel and its metadata in the tracking maps
 			activePanels.set(documentUri, panel);
 			previewViewColumns.set(documentUri, previewViewColumn);
 			previewDocuments.set(documentUri, document);
 
 			// ========================================================================
-			// HANDLING DE DISPOSAL DO PAINEL
+			// PANEL DISPOSAL
 			// ========================================================================
 			/**
-			 * Lida com o fechamento do painel (quando o utilizador fecha a preview).
-			 * Distingue entre fechamento manual (documento ainda aberto) e fechamento automático (documento fechado).
-			 * Isto é importante para a funcionalidade auto-open: se o utilizador fechar manualmente a preview,
-			 * não a reabrir até que o ficheiro seja fechado e reaberto.
+			 * Handles the panel being closed (when the user closes the preview).
+			 * Tells apart a manual close (document still open) from an automatic one (document closed).
+			 * This matters for auto-open: if the user closes the preview by hand,
+			 * it isn't reopened until the file is closed and opened again.
 			 */
 			panel.onDidDispose(() => {
-				// Remover dos maps de rastreamento
+				// Remove it from the tracking maps
 				activePanels.delete(documentUri);
 				previewViewColumns.delete(documentUri);
 				previewDocuments.delete(documentUri);
 				
-				// Verificar se foi fechamento manual ou automático (devido ao ficheiro ser fechado)
-				// Se o documento ainda existe, foi fechamento manual
+				// Was it closed manually or automatically (because the file was closed)?
+				// If the document still exists, it was closed manually
 				const documentStillExists = vscode.workspace.textDocuments.some(doc => doc.uri.toString() === documentUri);
 				if (documentStillExists) {
-					// Fechamento manual: utilizador fechou a preview mas o documento ainda está aberto
-					// Marcar como fechada para prevenir que auto-open a reabra
+					// Manual close: the user closed the preview but the document is still open
+					// Mark it as closed so auto-open doesn't reopen it
 					setPreviewClosed(context, document, true).catch(() => {
-						// Ignorar erros
+						// Ignore errors
 					});
 				} else {
-					// Fechamento automático: documento foi fechado, então a preview foi fechada automaticamente
-					// Resetar estado de fechamento para permitir reabrir quando o ficheiro for aberto novamente
+					// Automatic close: the document was closed, so its preview closed with it
+					// Reset the closed state so it can reopen when the file is opened again
 					setPreviewClosed(context, document, false).catch(() => {
-						// Ignorar erros
+						// Ignore errors
 					});
 				}
 			});
 
 			// ========================================================================
-			// ATUALIZAÇÕES DE CONTEÚDO DO WEBVIEW
+			// WEBVIEW CONTENT UPDATES
 			// ========================================================================
 			
 			/**
-			 * Atualiza o conteúdo HTML do painel webview com o conteúdo atual do documento.
-			 * É chamada sempre que:
-			 * - A preview é aberta pela primeira vez
-			 * - O conteúdo do documento muda (com debouncing)
-			 * - O documento é guardado (atualização imediata)
-			 * - O tema é alternado
+			 * Updates the webview HTML with the current content of the document.
+			 * Called whenever:
+			 * - The preview is opened for the first time
+			 * - The document content changes (debounced)
+			 * - The document is saved (immediate update)
+			 * - The theme is toggled
 			 * 
-			 * Renderiza Markdown para HTML, aplica CSS estilo GitHub, e inclui
-			 * botões interativos (toggle de tema, botão web se ativado).
+			 * Renders the Markdown to HTML, applies the GitHub CSS and adds
+			 * the interactive buttons (theme toggle, and the web button if enabled).
 			 */
 			const updateWebview = () => {
-				// Obter o documento atual (pode ter mudado desde que o painel foi criado)
+				// Get the current document (it may have changed since the panel was created)
 				const currentDocument = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === documentUri);
 				if (!currentDocument) {
-					return; // Documento já foi fechado, não pode atualizar
+					return; // The document was already closed, nothing to update
 				}
 
-				// Obter conteúdo do documento e renderizar Markdown para HTML
+				// Get the document content and render the Markdown to HTML
 				const content = currentDocument.getText();
 				const rendered = md.render(content);
 				
-				// Selecionar ficheiro CSS baseado na preferência de tema atual
+				// Pick the CSS file for the current theme
 				const cssFile = isDarkMode ? 'github-markdown-dark.css' : 'github-markdown-light.css';
 				
-				// Converter URI da extensão para URI do webview para carregar ficheiro CSS
+				// Convert the extension URI into a webview URI to load the CSS file
 				const githubCssUri = panel.webview.asWebviewUri(
 					vscode.Uri.joinPath(context.extensionUri, 'node_modules', 'github-markdown-css', cssFile)
 				);
 
-				// Verificar configurações para botões e funcionalidades
+				// Read the settings for buttons and features
 				const currentConfig = vscode.workspace.getConfiguration('github-style-markdown-preview');
 				const openInBrowser = currentConfig.get<boolean>('openInBrowser', false);
 				const enableExport = currentConfig.get<boolean>('enableExport', false);
 				const enableMath = currentConfig.get<boolean>('enableMath', false);
 				const maxWidthConfig = currentConfig.get<number | string>('maxWidth', 980);
-				// Garantir que maxWidth nunca seja 0, usar 980 como padrão
+				// Make sure maxWidth is never 0 (default to 980)
 				const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 				
-				// Gerar e definir conteúdo HTML para o webview
+				// Build and set the webview HTML
 				panel.webview.html = getWebviewHtml(rendered, githubCssUri, content, isDarkMode, openInBrowser, enableExport, enableMath, maxWidth, documentUri);
 			};
 
 			// ========================================================================
-			// FUNCIONALIDADE DE TOGGLE DE TEMA
+			// THEME TOGGLE
 			// ========================================================================
 			
 			/**
-			 * Alterna entre tema dark e light para a preview.
-			 * Guarda a preferência por ficheiro para que cada documento se lembre da sua escolha de tema.
-			 * Atualiza o webview para refletir o novo tema imediatamente.
+			 * Switches the preview between the dark and light themes.
+			 * Saves the preference per file, so each document remembers its theme.
+			 * Updates the webview right away to show the new theme.
 			 */
 			const toggleTheme = async () => {
 				isDarkMode = !isDarkMode;
 				await saveThemePreference(context, document, isDarkMode);
-				updateWebview(); // Refrescar webview com novo tema
+				updateWebview(); // Refresh the webview with the new theme
 			};
 
-			// Guardar função de toggle no contexto do painel para acesso externo (ex: command palette)
+			// Store the toggle function on the panel so it can be called from outside (e.g. the command palette)
 			(panel as any).toggleTheme = toggleTheme;
 
 			// ========================================================================
-			// MECANISMO DE AUTO-ATUALIZAÇÃO PARA PREVIEW NO IDE
+			// AUTO-UPDATE FOR THE IDE PREVIEW
 			// ========================================================================
 			
 			/**
-			 * Agendador de atualização com debounce para preview no IDE.
-			 * Previne atualizações excessivas do webview enquanto o utilizador está a digitar.
-			 * Se updateDelay for 0, as atualizações são instantâneas (sem debouncing).
+			 * Debounced update scheduler for the IDE preview.
+			 * Avoids refreshing the webview on every keystroke while the user types.
+			 * If updateDelay is 0, updates are instant (no debouncing).
 			 */
 			let updateTimeout: ReturnType<typeof setTimeout> | undefined;
 			const scheduleUpdate = () => {
@@ -745,19 +745,19 @@ export function activate(context: vscode.ExtensionContext) {
 					clearTimeout(updateTimeout);
 				}
 				if (updateDelay > 0) {
-					// Com debounce: aguarda que o utilizador pare de digitar
+					// Debounced: wait until the user stops typing
 					updateTimeout = setTimeout(() => {
 						updateWebview();
 					}, updateDelay);
 				} else {
-					// Instantâneo: atualiza imediatamente (pode causar problemas de performance)
+					// Instant: update right away (can be slow with large files)
 					updateWebview();
 				}
 			};
 
 			/**
-			 * Listener para mudanças no documento - agenda atualizações da preview.
-			 * Dispara sempre que o utilizador digita ou edita o ficheiro markdown.
+			 * Document change listener - schedules preview updates.
+			 * Fires whenever the user types in or edits the Markdown file.
 			 */
 			const changeSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
 				if (e.document.uri.toString() === documentUri) {
@@ -766,45 +766,45 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 
 			/**
-			 * Listener para eventos de guardar documento - atualiza preview imediatamente.
-			 * Garante que a preview está atualizada assim que o ficheiro é guardado (Ctrl+S).
+			 * Document save listener - updates the preview immediately.
+			 * Makes sure the preview is up to date as soon as the file is saved (Ctrl+S).
 			 */
 			const saveSubscription = vscode.workspace.onDidSaveTextDocument((doc) => {
 				if (doc.uri.toString() === documentUri) {
-					// Atualizar imediatamente quando guarda (sem debouncing)
+					// Update immediately on save (no debouncing)
 					updateWebview();
 				}
 			});
 
 			// ========================================================================
-			// FUNCIONALIDADE DE BOTÃO PARA ABRIR NO BROWSER
+			// OPEN IN BROWSER BUTTON
 			// ========================================================================
 			
 			/**
-			 * Abre a preview no browser externo e fecha o painel do IDE.
-			 * É chamada quando o utilizador clica no botão "Web" na preview do IDE.
+			 * Opens the preview in the external browser and closes the IDE panel.
+			 * Called when the user clicks the "Web" button in the IDE preview.
 			 */
 			const openInBrowserAndClose = async () => {
 				const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 				const updateDelay = config.get<number>('updateDelay', 300);
-				// Fechar painel do IDE primeiro
+				// Close the IDE panel first
 				panel.dispose();
-				// Aguardar um pouco antes de abrir no browser (garante que o painel está totalmente fechado)
+				// Wait a moment before opening the browser (so the panel is fully closed)
 				setTimeout(async () => {
 					await openPreviewInBrowser(document, context, updateDelay);
 				}, 100);
 			};
 
-			// Guardar função no contexto do painel para acesso externo
+			// Store the function on the panel so it can be called from outside
 			(panel as any).openInBrowser = openInBrowserAndClose;
 
 			// ========================================================================
-			// FUNCIONALIDADE DE EXPORT
+			// EXPORT
 			// ========================================================================
 			
 			/**
-			 * Exporta a preview como HTML.
-			 * Permite ao utilizador escolher o local e nome do ficheiro.
+			 * Exports the preview as HTML.
+			 * Lets the user choose where to save the file and its name.
 			 */
 			const exportPreview = async () => {
 				try {
@@ -814,32 +814,32 @@ export function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 
-					// Obter configurações para recriar o renderizador
+					// Read the settings to recreate the renderer
 					const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 					const enableEmoji = config.get<boolean>('enableEmoji', true);
 					const enableBreaks = config.get<boolean>('enableBreaks', false);
 					
-					// Criar renderizador Markdown com as mesmas configurações
+					// Create a Markdown renderer with the same settings
 					const exportMd = new MarkdownIt({
 						breaks: enableBreaks,
 						html: false,
 						linkify: true,
 					});
 					
-					// Adicionar suporte para emojis se ativado
+					// Add emoji support if enabled
 					if (enableEmoji) {
 						exportMd.use(emoji);
 					}
 
-					// Obter conteúdo renderizado
+					// Render the content
 					const content = currentDoc.getText();
 					const rendered = exportMd.render(content);
 					
-					// Selecionar ficheiro CSS baseado no tema
+					// Pick the CSS file for the theme
 					const cssFile = isDarkMode ? 'github-markdown-dark.css' : 'github-markdown-light.css';
 					const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
 					
-					// Calcular max-width
+					// Work out the max-width
 					const maxWidthConfig = config.get<number | string>('maxWidth', 980);
 					const maxWidth = (typeof maxWidthConfig === 'number' && maxWidthConfig === 0) ? 980 : maxWidthConfig;
 					const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
@@ -848,7 +848,7 @@ export function activate(context: vscode.ExtensionContext) {
 							? `${maxWidth}px` 
 							: '980px';
 					
-					// Verificar se Math está ativado para incluir KaTeX
+					// If math is enabled, include KaTeX
 					const enableMath = config.get<boolean>('enableMath', false);
 					const katexCss = enableMath ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">' : '';
 					const katexJs = enableMath ? '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>' : '';
@@ -866,7 +866,7 @@ export function activate(context: vscode.ExtensionContext) {
 						});
 					</script>` : '';
 					
-					// Gerar HTML completo
+					// Build the full HTML
 					const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -897,7 +897,7 @@ export function activate(context: vscode.ExtensionContext) {
 </body>
 </html>`;
 
-					// Pedir ao utilizador para escolher o local e nome do ficheiro
+					// Ask the user where to save the file and its name
 					const fileName = currentDoc.fileName.split(/[/\\]/).pop()?.replace(/\.md$/i, '') || 'export';
 					const uri = await vscode.window.showSaveDialog({
 						defaultUri: vscode.Uri.file(`${fileName}.html`),
@@ -908,7 +908,7 @@ export function activate(context: vscode.ExtensionContext) {
 					});
 
 					if (uri) {
-						// Escrever ficheiro
+						// Write the file
 						const encoder = new TextEncoder();
 						await vscode.workspace.fs.writeFile(uri, encoder.encode(htmlContent));
 						vscode.window.showInformationMessage(`Preview exported to ${uri.fsPath}`);
@@ -918,19 +918,19 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			};
 
-			// Guardar função no contexto do painel para acesso externo
+			// Store the function on the panel so it can be called from outside
 			(panel as any).exportPreview = exportPreview;
 
 			// ========================================================================
-			// HANDLING DE MENSAGENS DO WEBVIEW
+			// WEBVIEW MESSAGES
 			// ========================================================================
 			
 			/**
-			 * Lida com mensagens do webview (do JavaScript na preview).
-			 * Suporta três comandos:
-			 * - 'toggleTheme': Alterna entre tema dark e light
-			 * - 'openInBrowser': Abre preview no browser externo e fecha painel do IDE
-			 * - 'exportPreview': Exporta a preview como HTML
+			 * Handles messages from the webview (from the JavaScript in the preview).
+			 * Supports three commands:
+			 * - 'toggleTheme': switches between the dark and light themes
+			 * - 'openInBrowser': opens the preview in the external browser and closes the IDE panel
+			 * - 'exportPreview': exports the preview as HTML
 			 */
 			panel.webview.onDidReceiveMessage(async (msg) => {
 				if (msg.command === 'toggleTheme') {
@@ -943,12 +943,12 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 
 			// ========================================================================
-			// LIMPEZA AO FECHAR O PAINEL
+			// CLEAN-UP WHEN THE PANEL CLOSES
 			// ========================================================================
 			
 			/**
-			 * Limpa recursos quando o painel é fechado.
-			 * Remove listeners de eventos e limpa timeouts para prevenir memory leaks.
+			 * Cleans up when the panel is closed.
+			 * Disposes the event listeners and clears timeouts to avoid memory leaks.
 			 */
 			panel.onDidDispose(() => {
 				changeSubscription.dispose();
@@ -958,10 +958,10 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			});
 
-			// Atualização inicial do webview (mostrar conteúdo da preview)
+			// Initial webview update (show the preview content)
 			updateWebview();
 			
-			// Focar no editor do documento após abrir a preview (se configurado)
+			// Focus the document's editor after opening the preview (if configured)
 			const focusEditorAfterOpen = config.get<boolean>('focusEditorAfterOpen', true);
 			if (focusEditorAfterOpen) {
 				setTimeout(async () => {
@@ -971,39 +971,39 @@ export function activate(context: vscode.ExtensionContext) {
 							await vscode.window.showTextDocument(doc, { preview: false, viewColumn: vscode.ViewColumn.One });
 						}
 					} catch (error) {
-						// Ignorar erros ao focar
+						// Ignore focus errors
 					}
 				}, 100);
 			}
 		}
 
 		// ========================================================================
-		// REGISTO DE COMANDOS DO VS CODE
+		// VS CODE COMMANDS
 		// ========================================================================
 		
 		/**
-		 * Comando: Abrir Markdown Preview
+		 * Command: Open Markdown Preview
 		 * 
-		 * Abre uma preview estilo GitHub para o ficheiro markdown atualmente ativo.
-		 * Pode ser acionado via:
+		 * Opens a GitHub-style preview of the active Markdown file.
+		 * Can be triggered from:
 		 * - Command Palette: "GitHub Style Markdown Preview: Open Markdown Preview"
-		 * - Atalho de teclado: Alt+R (quando a editar markdown)
-		 * - Botão no título do editor: ícone Preview (quando a editar markdown)
+		 * - Keyboard shortcut: Alt+R (while editing Markdown)
+		 * - Editor title button: the Preview icon (while editing Markdown)
 		 * 
-		 * Respeita a configuração openInBrowser:
-		 * - Se false: Abre preview no painel webview do IDE
-		 * - Se true: Abre preview no browser externo
+		 * Honours the openInBrowser setting:
+		 * - false: opens the preview in an IDE webview panel
+		 * - true: opens the preview in the external browser
 		 */
 		const openCommand = vscode.commands.registerCommand('github-style-markdown-preview.openMarkDown', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
-			vscode.window.showErrorMessage('Nenhum ficheiro aberto.');
+			vscode.window.showErrorMessage('No file is open.');
 			return;
 		}
 
 		const document = editor.document;
 			if (!isFileSupported(document)) {
-				// Mensagem de erro mais informativa para debug
+				// More detailed error message for debugging
 				const fileName = document.fileName.split(/[/\\]/).pop() || document.fileName;
 				const languageId = document.languageId;
 				const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
@@ -1017,14 +1017,14 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 				
 				vscode.window.showWarningMessage(
-					`Este comando só funciona com ficheiros Markdown suportados. ` +
-					`Ficheiro: ${fileName}, Language ID: ${languageId}, Padrões: ${supportedPatterns.join(', ')}`
+					`This command only works with supported Markdown files. ` +
+					`File: ${fileName}, Language ID: ${languageId}, Patterns: ${supportedPatterns.join(', ')}`
 				);
 				return;
 			}
 
-			// Resetar estado de preview fechada quando o utilizador abre manualmente
-			// Isto permite que auto-open funcione novamente se o utilizador tiver fechado a preview antes
+			// Reset the closed state when the user opens the preview by hand
+			// This lets auto-open work again if the user closed the preview earlier
 			await setPreviewClosed(context, document, false);
 			await openPreview(document);
 		});
@@ -1032,34 +1032,34 @@ export function activate(context: vscode.ExtensionContext) {
 		/**
 		 * Comando: Toggle Preview Theme
 		 * 
-		 * Alterna entre tema dark e light para a preview atualmente visível.
-		 * Pode ser acionado via:
+		 * Switches the visible preview between the dark and light themes.
+		 * Can be triggered from:
 		 * - Command Palette: "GitHub Style Markdown Preview: Toggle Preview Theme"
-		 * - Atalho de teclado: Ctrl+Shift+T (quando a preview está ativa)
-		 * - Botão na preview: botão de toggle de tema no webview
+		 * - Keyboard shortcut: Ctrl+Shift+T (while the preview is active)
+		 * - Preview button: the theme toggle button in the webview
 		 * 
-		 * A preferência de tema é guardada por ficheiro e persiste entre sessões do VS Code.
+		 * The theme preference is saved per file and persists across VS Code sessions.
 		 */
 		const toggleThemeCommand = vscode.commands.registerCommand('github-style-markdown-preview.toggleTheme', async () => {
-			// Encontrar o painel de preview atualmente visível/ativo
+			// Find the visible/active preview panel
 			const activePanel = Array.from(activePanels.values()).find(panel => panel.visible);
 			if (activePanel && (activePanel as any).toggleTheme) {
 				await (activePanel as any).toggleTheme();
 			} else {
-				vscode.window.showInformationMessage('Nenhuma preview ativa. Abra uma preview primeiro.');
+				vscode.window.showInformationMessage('No active preview. Open a preview first.');
 			}
 		});
 
 		// ========================================================================
-		// HANDLING DE FECHAMENTO DE DOCUMENTO
+		// DOCUMENT CLOSE HANDLING
 		// ========================================================================
 		
 		/**
-		 * Listener para eventos de fechamento de documento - fecha painéis de preview associados.
-		 * Quando um ficheiro markdown é fechado, a sua preview é automaticamente fechada também
-		 * (se closeOnFileClose estiver ativado).
-		 * O handler onDidDispose do painel vai detetar que o documento já não existe
-		 * e resetar o estado de fechamento para permitir reabrir quando o ficheiro for aberto novamente.
+		 * Document close listener - closes the matching preview panels.
+		 * When a Markdown file is closed, its preview closes too
+		 * (if closeOnFileClose is enabled).
+		 * The panel's onDidDispose handler sees that the document no longer exists
+		 * and resets the closed state so it can reopen when the file is opened again.
 		 */
 		const closePreviewOnDocumentClose = vscode.workspace.onDidCloseTextDocument((document) => {
 			if (isFileSupported(document)) {
@@ -1070,9 +1070,9 @@ export function activate(context: vscode.ExtensionContext) {
 					const documentUri = document.uri.toString();
 					const panel = activePanels.get(documentUri);
 					if (panel) {
-						// Fechar preview quando o documento é fechado
-						// O onDidDispose do painel vai detetar que o documento não existe mais
-						// e resetar o estado corretamente
+						// Close the preview when its document is closed
+						// The panel's onDidDispose sees that the document no longer exists
+						// and resets the state correctly
 						panel.dispose();
 					}
 				}
@@ -1081,26 +1081,26 @@ export function activate(context: vscode.ExtensionContext) {
 		context.subscriptions.push(closePreviewOnDocumentClose);
 
 		// ========================================================================
-		// FUNCIONALIDADE AUTO-OPEN
+		// AUTO-OPEN
 		// ========================================================================
 		
 		/**
-		 * Auto-abrir preview quando ficheiros markdown são abertos.
+		 * Opens the preview automatically when Markdown files are opened.
 		 * 
-		 * Quando ativada (autoOpen = true):
-		 * - Abre automaticamente preview quando um ficheiro markdown suportado é aberto
-		 * - Verifica ficheiros já abertos quando o VS Code inicia e abre previews para eles
-		 * - Respeita fechamento manual: se o utilizador fechar manualmente a preview,
-		 *   não a reabre até que o ficheiro seja fechado e reaberto
+		 * When enabled (autoOpen = true):
+		 * - Opens the preview automatically when a supported Markdown file is opened
+		 * - Checks the files already open when VS Code starts and opens their previews
+		 * - Respects manual closes: if the user closes the preview by hand,
+		 *   it isn't reopened until the file is closed and opened again
 		 * 
-		 * Isto proporciona uma experiência fluida similar a extensões de live preview.
+		 * This gives a smooth experience similar to live preview extensions.
 		 */
 		const config = vscode.workspace.getConfiguration('github-style-markdown-preview');
 		if (config.get<boolean>('autoOpen', false)) {
 			/**
-			 * Verifica ficheiros atualmente abertos e abre previews para ficheiros markdown suportados.
-			 * É chamada na ativação da extensão para lidar com ficheiros que já estavam abertos
-			 * quando o VS Code iniciou.
+			 * Checks the files that are open and opens previews for supported Markdown files.
+			 * Called on activation to handle files that were already open
+			 * when VS Code started.
 			 */
 			const checkOpenFiles = async () => {
 				try {
@@ -1109,60 +1109,60 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-					// Iterar através de todos os documentos abertos
+					// Go through every open document
 					for (const doc of openDocuments) {
 						try {
-							// Verificar se o documento é suportado e a preview não foi fechada manualmente
+							// Check that the document is supported and its preview wasn't closed manually
 							if (doc && isFileSupported(doc) && !isPreviewClosed(context, doc)) {
 								const documentUri = doc.uri.toString();
 								if (!activePanels.has(documentUri)) {
-									// Pequeno delay entre abrir múltiplas previews (previne sobrecarga do sistema)
+									// Short delay between previews (avoids overloading the system)
 									await new Promise(resolve => setTimeout(resolve, 150));
-									// Verificar novamente antes de abrir (pode ter mudado durante o delay)
+									// Check again before opening (things may have changed during the delay)
 									if (doc && !isPreviewClosed(context, doc) && !activePanels.has(documentUri)) {
 										openPreview(doc).catch(() => {
-											// Ignorar erros silenciosamente
+											// Ignore errors silently
 										});
 									}
 								}
 							}
 						} catch (error) {
-							// Continuar com o próximo ficheiro se ocorrer erro
+							// Move on to the next file if something fails
 							continue;
 						}
 					}
 				} catch (error) {
-					// Ignorar erros gerais
+					// Ignore general errors
 				}
 			};
 
-			// Verificar ficheiros abertos após um delay maior (garante que VS Code está totalmente pronto)
+			// Check the open files after a longer delay (so VS Code is fully ready)
 			setTimeout(() => {
 				checkOpenFiles().catch(() => {
-					// Ignorar erros
+					// Ignore errors
 				});
 			}, 1000);
 
 			/**
-			 * Listener para mudanças de editor - auto-abre preview quando um ficheiro markdown suportado se torna ativo.
-			 * Só abre se:
-			 * - A preview não foi fechada manualmente
-			 * - Não existe já uma preview aberta para este documento
-			 * - O documento é suportado (corresponde aos padrões de ficheiro)
+			 * Active editor listener - opens the preview when a supported Markdown file becomes active.
+			 * Only opens it if:
+			 * - The preview wasn't closed manually
+			 * - There isn't already a preview open for this document
+			 * - The document is supported (matches the file patterns)
 			 */
 			const autoOpenDisposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
 				if (editor && isFileSupported(editor.document)) {
-					// Verificar se a preview não foi fechada manualmente
+					// Check that the preview wasn't closed manually
 					if (!isPreviewClosed(context, editor.document)) {
-						// Verificar se já não existe uma preview aberta
+						// Check that there isn't a preview open already
 						const documentUri = editor.document.uri.toString();
 						if (!activePanels.has(documentUri)) {
-							// Pequeno delay para evitar abrir múltiplas vezes
+							// Short delay to avoid opening it several times
 							setTimeout(() => {
-								// Verificar novamente se não foi fechada manualmente no intervalo
+								// Check again that it wasn't closed manually in the meantime
 								if (!isPreviewClosed(context, editor.document) && !activePanels.has(documentUri)) {
 									openPreview(editor.document).catch(() => {
-										// Ignorar erros silenciosamente
+										// Ignore errors silently
 									});
 								}
 							}, 200);
@@ -1174,65 +1174,65 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		// ========================================================================
-		// FUNCIONALIDADE DE PROTEÇÃO DE COLUNA DE PREVIEW
+		// PREVIEW COLUMN PROTECTION
 		// ========================================================================
 		
 		/**
-		 * Protege a coluna de preview de outros ficheiros.
+		 * Keeps other files out of the preview column.
 		 * 
-		 * Quando ativada (protectPreviewColumn = true):
-		 * - Preview abre na coluna 2 (coluna dedicada para previews)
-		 * - Se qualquer outro ficheiro tentar abrir na coluna 2, é automaticamente movido para a coluna 1
-		 * - Isto garante que a coluna de preview é reservada exclusivamente para previews
-		 * - Proporciona um layout de workspace mais limpo com posicionamento previsível de previews
+		 * When enabled (protectPreviewColumn = true):
+		 * - The preview opens in column 2 (a column dedicated to previews)
+		 * - Any other file that opens in column 2 is moved to column 1 automatically
+		 * - So the preview column is reserved for previews only
+		 * - This keeps the layout tidy, with previews always in a predictable place
 		 * 
-		 * Usa uma flag de proteção e timeout para prevenir loops infinitos ao mover ficheiros.
+		 * Uses a guard flag and a timeout to avoid infinite loops while moving files.
 		 */
 		if (config.get<boolean>('protectPreviewColumn', false)) {
-			let isProtecting = false; // Flag para prevenir loops infinitos
+			let isProtecting = false; // Guard flag to avoid infinite loops
 			let protectTimeout: ReturnType<typeof setTimeout> | undefined;
 			
 			/**
-			 * Protege a coluna 2 movendo ficheiros não-preview para a coluna 1.
-			 * Só ativa se:
-			 * - O editor existe e não está já a ser protegido
-			 * - O editor está na coluna 2
-			 * - Existe uma preview na coluna 2
-			 * - O ficheiro atual não é o documento da preview em si
+			 * Protects column 2 by moving non-preview files to column 1.
+			 * Only acts if:
+			 * - The editor exists and isn't already being handled
+			 * - The editor is in column 2
+			 * - There is a preview in column 2
+			 * - The current file isn't the preview's own document
 			 */
 			const protectColumn = async (editor: vscode.TextEditor) => {
 				if (!editor || isProtecting || editor.viewColumn !== vscode.ViewColumn.Two) {
 					return;
 				}
 				
-				// Verificar se há uma preview na coluna 2
+				// Is there a preview in column 2?
 				const hasPreviewInColumnTwo = Array.from(previewViewColumns.values()).some(col => col === vscode.ViewColumn.Two);
 				
 				if (!hasPreviewInColumnTwo) {
-					return; // Não há preview para proteger
+					return; // No preview to protect
 				}
 				
-				// Verificar se o ficheiro atual não é um documento de preview
+				// Check that the current file isn't a preview document
 				const currentDocUri = editor.document.uri.toString();
 				const isPreviewDocument = Array.from(activePanels.keys()).some(uri => uri === currentDocUri);
 				
-				// Se for um ficheiro markdown suportado na coluna 2, fechar o editor da coluna 2
-				// e mover para a coluna 1 (a preview já está na coluna 2)
+				// If a supported Markdown file opens in column 2, close it there
+				// and move it to column 1 (the preview is already in column 2)
 				if (isFileSupported(editor.document)) {
 					isProtecting = true;
 					try {
-						// Fechar o editor atual da coluna 2
+						// Close the current editor in column 2
 						await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 						
-						// Mover ficheiro para a coluna 1 (coluna 2 protegida é apenas para previews)
+						// Move the file to column 1 (the protected column 2 is for previews only)
 						await vscode.window.showTextDocument(editor.document, {
 							viewColumn: vscode.ViewColumn.One,
 							preview: false
 						});
 					} catch (error) {
-						// Ignorar erros silenciosamente
+						// Ignore errors silently
 					} finally {
-						// Resetar flag de proteção após um pequeno delay
+						// Reset the guard flag after a short delay
 						if (protectTimeout) {
 							clearTimeout(protectTimeout);
 						}
@@ -1246,15 +1246,15 @@ export function activate(context: vscode.ExtensionContext) {
 				if (!isPreviewDocument) {
 					isProtecting = true;
 					try {
-						// Mover ficheiro para a coluna 1 (coluna 2 protegida é apenas para previews)
+						// Move the file to column 1 (the protected column 2 is for previews only)
 						await vscode.window.showTextDocument(editor.document, {
 							viewColumn: vscode.ViewColumn.One,
 							preview: false
 						});
 					} catch (error) {
-						// Ignorar erros silenciosamente
+						// Ignore errors silently
 					} finally {
-						// Resetar flag de proteção após um pequeno delay
+						// Reset the guard flag after a short delay
 						if (protectTimeout) {
 							clearTimeout(protectTimeout);
 						}
@@ -1266,15 +1266,15 @@ export function activate(context: vscode.ExtensionContext) {
 			};
 			
 			/**
-			 * Listener para mudanças de editor - protege a coluna 2 quando necessário.
-			 * Usa um pequeno delay para evitar múltiplas chamadas rápidas.
+			 * Active editor listener - protects column 2 when needed.
+			 * Uses a short delay to avoid several quick calls.
 			 */
 			const protectColumnDisposable = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
 				if (editor) {
-					// Pequeno delay para evitar múltiplas chamadas
+					// Short delay to avoid several calls
 					setTimeout(() => {
 						protectColumn(editor).catch(() => {
-							// Ignorar erros
+							// Ignore errors
 						});
 					}, 100);
 				}
@@ -1284,16 +1284,16 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		// ========================================================================
-		// STATUS BAR ITEM - Botão na barra de status para abrir preview
+		// STATUS BAR ITEM - Status bar button to open the preview
 		// ========================================================================
 		
 		/**
-		 * Cria um botão na barra de status (similar ao Live Server) para abrir a preview.
-		 * O botão aparece quando um ficheiro Markdown está aberto e ativo.
+		 * Creates a status bar button (like Live Server's) to open the preview.
+		 * The button appears when a Markdown file is open and active.
 		 */
 		const statusBarItem = vscode.window.createStatusBarItem(
 			vscode.StatusBarAlignment.Right,
-			100 // Prioridade (número menor = mais à direita)
+			100 // Priority (lower number = further right)
 		);
 		
 		statusBarItem.command = 'github-style-markdown-preview.openMarkDown';
@@ -1301,8 +1301,8 @@ export function activate(context: vscode.ExtensionContext) {
 		statusBarItem.text = '$(preview) Markdown Preview';
 		
 		/**
-		 * Atualiza a visibilidade do botão na barra de status baseado no editor ativo.
-		 * O botão só aparece quando um ficheiro Markdown suportado está aberto.
+		 * Shows or hides the status bar button depending on the active editor.
+		 * The button only appears when a supported Markdown file is open.
 		 */
 		const updateStatusBar = () => {
 			const editor = vscode.window.activeTextEditor;
@@ -1313,19 +1313,19 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		};
 		
-		// Atualizar quando o editor ativo muda
+		// Update when the active editor changes
 		const statusBarDisposable = vscode.window.onDidChangeActiveTextEditor(() => {
 			updateStatusBar();
 		});
 		
-		// Atualizar inicialmente
+		// Initial update
 		updateStatusBar();
 		
 		// ========================================================================
-		// REGISTAR COMANDOS PARA LIMPEZA
+		// REGISTER COMMANDS FOR CLEAN-UP
 		// ========================================================================
 		
-		// Registar todos os comandos e subscriptions para que sejam limpos corretamente quando a extensão desativar
+		// Register every command and subscription so they are cleaned up when the extension deactivates
 		context.subscriptions.push(openCommand, toggleThemeCommand, statusBarItem, statusBarDisposable);
 	} catch (error) {
 		console.error('Error activating GitHub Style Markdown Preview:', error);
@@ -1334,46 +1334,46 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // ============================================================================
-// FUNÇÕES DE GERAÇÃO DE HTML
+// HTML GENERATION
 // ============================================================================
 
 /**
- * Gera HTML para preview no browser (modo browser externo).
+ * Builds the HTML for the browser preview (external browser mode).
  * 
- * Esta função cria um ficheiro HTML standalone que pode ser aberto em qualquer browser.
- * Características:
- * - Usa GitHub Markdown CSS do CDN (github-markdown-css)
- * - Suporta temas dark e light
- * - Auto-refresh via meta refresh tag (atualiza quando o ficheiro HTML é modificado)
- * - UI mínima (sem botões, apenas conteúdo)
+ * Creates a standalone HTML file that can be opened in any browser.
+ * Features:
+ * - Uses the GitHub Markdown CSS from a CDN (github-markdown-css)
+ * - Supports dark and light themes
+ * - Auto-refresh with a meta refresh tag (reloads when the HTML file changes)
+ * - Minimal UI (no buttons, only the content)
  * 
- * O ficheiro HTML é criado na pasta .vscode do workspace e atualizado
- * sempre que o ficheiro markdown muda ou é guardado.
+ * The HTML file is stored in the extension's storage and rewritten
+ * whenever the Markdown file changes or is saved.
  * 
- * @param renderedHtml - O conteúdo HTML renderizado do markdown-it
- * @param rawContent - O conteúdo markdown bruto (não usado atualmente, reservado para funcionalidades futuras)
- * @param isDark - true para usar tema dark, false para tema light
- * @param documentUri - A URI do documento (para rastreamento)
- * @param updateDelay - Delay em milissegundos para atualizações (afeta intervalo de refresh)
- * @returns String HTML completa para a preview no browser
+ * @param renderedHtml - HTML rendered by markdown-it
+ * @param rawContent - The raw Markdown (currently unused, kept for future features)
+ * @param isDark - true for the dark theme, false for the light theme
+ * @param documentUri - The document URI (for tracking)
+ * @param updateDelay - Update delay in milliseconds (affects the refresh interval)
+ * @returns Complete HTML for the browser preview
  */
 function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolean, documentUri: string, updateDelay: number, maxWidth: number | string = 980): string {
-	// Selecionar ficheiro CSS baseado no tema (GitHub Markdown CSS do CDN)
+	// Pick the CSS file for the theme (GitHub Markdown CSS from a CDN)
 	const cssFile = isDark ? 'github-markdown-dark.css' : 'github-markdown-light.css';
-	// Usar CDN para CSS do GitHub (não podemos servir ficheiros locais no browser devido a restrições CORS)
+	// Use a CDN for the GitHub CSS (local files can't be served to the browser because of CORS)
 	const cssUrl = `https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.8.1/${cssFile}`;
 	
-	// Calcular max-width CSS
+	// Work out the CSS max-width
 	const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
 		? 'auto' 
 		: typeof maxWidth === 'number' 
 			? `${maxWidth}px` 
 			: '980px';
 	
-	// Envolver HTML renderizado em tag article markdown-body com padding e max-width
+	// Wrap the rendered HTML in a markdown-body article with padding and max-width
 	const content = `<article class="markdown-body" style="padding: 2rem; max-width: ${maxWidthCss}; margin: 0 auto;">${renderedHtml}</article>`;
 	
-	// Ajustes CSS específicos do tema para melhor consistência visual
+	// Theme-specific CSS tweaks for a consistent look
 	const themeAdjustments = isDark ? `
 		.markdown-body {
 			color-scheme: dark;
@@ -1390,8 +1390,8 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 		}
 	`;
 
-	// Calcular intervalo de auto-refresh baseado no updateDelay
-	// Mínimo 200ms para evitar refreshes excessivos
+	// Work out the auto-refresh interval from updateDelay
+	// At least 200ms to avoid refreshing too often
 	const refreshInterval = Math.max(updateDelay || 300, 200);
 
 	return /*html*/ `
@@ -1434,40 +1434,40 @@ function getBrowserHtml(renderedHtml: string, rawContent: string, isDark: boolea
 }
 
 /**
- * Gera HTML para preview no painel webview do IDE.
+ * Builds the HTML for the IDE webview panel.
  * 
- * Esta função cria o conteúdo HTML para o painel webview do VS Code.
- * Características:
- * - Usa GitHub Markdown CSS dos node_modules da extensão
- * - Suporta temas dark e light com botão de toggle
- * - Auto-atualiza quando o ficheiro markdown muda
- * - Inclui botões interativos (toggle de tema, botão web se ativado)
- * - Integra com variáveis de tema do VS Code para aparência consistente
+ * Creates the HTML content of the VS Code webview panel.
+ * Features:
+ * - Uses the GitHub Markdown CSS from the extension's node_modules
+ * - Supports dark and light themes, with a toggle button
+ * - Updates automatically when the Markdown file changes
+ * - Includes interactive buttons (theme toggle, and the web button if enabled)
+ * - Uses VS Code theme variables for a consistent look
  * 
- * O webview pode comunicar com a extensão via API postMessage.
+ * The webview talks to the extension through the postMessage API.
  * 
- * @param renderedHtml - O conteúdo HTML renderizado do markdown-it
- * @param cssUri - A URI para o ficheiro CSS GitHub Markdown (convertida para webview)
- * @param rawContent - O conteúdo markdown bruto (não usado atualmente)
- * @param isDark - true para usar tema dark, false para tema light
- * @param showWebButton - true para mostrar botão "Web" (abre preview no browser)
- * @returns String HTML completa para o painel webview
+ * @param renderedHtml - HTML rendered by markdown-it
+ * @param cssUri - URI of the GitHub Markdown CSS file (converted for the webview)
+ * @param rawContent - The raw Markdown (currently unused)
+ * @param isDark - true for the dark theme, false for the light theme
+ * @param showWebButton - true to show the "Web" button (opens the preview in the browser)
+ * @returns Complete HTML for the webview panel
  */
 function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: string, isDark: boolean, showWebButton: boolean = false, enableExport: boolean = false, enableMath: boolean = false, maxWidth: number | string = 980, documentUri: string = ''): string {
-	// Calcular max-width CSS
+	// Work out the CSS max-width
 	const maxWidthCss = typeof maxWidth === 'string' && maxWidth.toLowerCase() === 'auto' 
 		? 'auto' 
 		: typeof maxWidth === 'number' 
 			? `${maxWidth}px` 
 			: '980px';
 	
-	// Envolver HTML renderizado em tag article markdown-body com padding e max-width
+	// Wrap the rendered HTML in a markdown-body article with padding and max-width
 	const content = `<article class="markdown-body" style="padding: 2rem; max-width: ${maxWidthCss}; margin: 0 auto;">${renderedHtml}</article>`;
 	
-	// Texto do botão baseado no tema atual (mostra opção de tema oposto)
+	// Button label for the current theme (offers the opposite theme)
 	const buttonText = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
 	
-	// Calcular posições dos botões dinamicamente
+	// Work out the button positions
 	let buttonRight = 10;
 	const buttons = [];
 	if (showWebButton) {
@@ -1479,7 +1479,7 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 		buttons.push(`<button id="export" class="export-button" title="Export preview as HTML">💾 Export</button>`);
 	}
 	
-	// Incluir KaTeX se Math estiver ativado
+	// Include KaTeX if math is enabled
 	const katexCss = enableMath ? '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">' : '';
 	const katexJs = enableMath ? '<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>' : '';
 	const katexRenderScript = enableMath ? `
@@ -1499,8 +1499,8 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 			});
 		</script>` : '';
 	
-	// Ajustes CSS específicos do tema usando variáveis de tema do VS Code
-	// Isto garante que a preview corresponde ao tema atual do VS Code
+	// Theme-specific CSS tweaks using VS Code theme variables
+	// So the preview matches the current VS Code theme
 	const themeAdjustments = isDark ? `
 			.markdown-body {
 				color-scheme: dark;
@@ -1603,11 +1603,11 @@ function getWebviewHtml(renderedHtml: string, cssUri: vscode.Uri, rawContent: st
 }
 
 /**
- * Escapa caracteres especiais HTML para prevenir ataques XSS.
- * Converte caracteres potencialmente perigosos para os seus equivalentes de entidade HTML.
+ * Escapes HTML special characters to prevent XSS.
+ * Replaces potentially dangerous characters with their HTML entities.
  * 
- * @param unsafe - A string a escapar
- * @returns A string escapada segura para output HTML
+ * @param unsafe - The string to escape
+ * @returns The escaped string, safe for HTML output
  */
 function escapeHtml(unsafe: string): string {
 	return unsafe
@@ -1619,8 +1619,8 @@ function escapeHtml(unsafe: string): string {
 }
 
 /**
- * Função de desativação da extensão.
- * Chamada quando o VS Code desativa a extensão.
- * Todas as subscriptions registadas em context.subscriptions são automaticamente limpas.
+ * Extension deactivation function.
+ * Called when VS Code deactivates the extension.
+ * Every subscription registered in context.subscriptions is cleaned up automatically.
  */
 export function deactivate() {}
