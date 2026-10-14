@@ -2,6 +2,9 @@
 
 A Visual Studio Code extension that allows you to preview Markdown files in GitHub style, with dark and light theme support, real-time automatic updates, and various customization options.
 
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/MCCProgrammer.github-style-markdown-preview?label=VS%20Code%20Marketplace&logo=visualstudiocode&style=flat-square&color=1f2328)](https://marketplace.visualstudio.com/items?itemName=MCCProgrammer.github-style-markdown-preview)
+[![Open VSX](https://img.shields.io/open-vsx/v/MCCProgrammer/github-style-markdown-preview?label=Open%20VSX&logo=eclipseide&style=flat-square&color=1f2328)](https://open-vsx.org/extension/MCCProgrammer/github-style-markdown-preview)
+
 ## ✨ Features
 
 - 🎨 **GitHub Style Preview**: Preview Markdown files with the official GitHub style
@@ -16,6 +19,10 @@ A Visual Studio Code extension that allows you to preview Markdown files in GitH
 - 💾 **Export Functionality**: Export preview as standalone HTML file
 
 ## 🚀 Installation
+
+Install it from the [**VS Code Marketplace**](https://marketplace.visualstudio.com/items?itemName=MCCProgrammer.github-style-markdown-preview), or from [**Open VSX**](https://open-vsx.org/extension/MCCProgrammer/github-style-markdown-preview) if you use VSCodium, Cursor, Windsurf or another editor based on VS Code.
+
+Or from inside the editor:
 
 1. Open VS Code
 2. Go to Extensions section (`Ctrl+Shift+X` or `Cmd+Shift+X`)
