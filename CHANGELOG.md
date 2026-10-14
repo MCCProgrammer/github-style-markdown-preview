@@ -4,6 +4,12 @@ All notable changes to the "GitHub Style Markdown Preview" extension will be doc
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.6] - 2026-10-14
+
+### Changed
+- Error and information messages are now in English
+- Code comments translated to English
+
 ## [0.0.5] - 2025-11-12
 
 ### Added
