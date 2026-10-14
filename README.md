@@ -5,6 +5,8 @@ A Visual Studio Code extension that allows you to preview Markdown files in GitH
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/MCCProgrammer.github-style-markdown-preview?label=VS%20Code%20Marketplace&logo=visualstudiocode&style=flat-square&color=1f2328)](https://marketplace.visualstudio.com/items?itemName=MCCProgrammer.github-style-markdown-preview)
 [![Open VSX](https://img.shields.io/open-vsx/v/MCCProgrammer/github-style-markdown-preview?label=Open%20VSX&logo=eclipseide&style=flat-square&color=1f2328)](https://open-vsx.org/extension/MCCProgrammer/github-style-markdown-preview)
 
+[![Support me on Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20me-FF5E5B?logo=ko-fi&logoColor=white&style=flat-square)](https://ko-fi.com/mccprogrammer)
+
 ## ✨ Features
 
 - 🎨 **GitHub Style Preview**: Preview Markdown files with the official GitHub style
@@ -257,6 +259,12 @@ See [CHANGELOG.md](CHANGELOG.md) for complete version history.
 - Customizable settings (maxWidth, emoji, breaks, etc.)
 - Full support for GitHub Flavored Markdown
 - Support for GitHub emojis (:smile:, :rocket:, etc.)
+
+## 📬 Contact & Support
+
+Questions, feedback or ideas: [contact@mccprogrammer.com](mailto:contact@mccprogrammer.com).
+
+If the extension helps you, a coffee on [Ko-fi](https://ko-fi.com/mccprogrammer) makes a big difference.
 
 ## 🤝 Contributing
 
